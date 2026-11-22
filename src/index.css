@@ -874,40 +874,55 @@ kbd {
   margin-right: 4px;
 }
 
-.quick-interact-dock {
+/* 1 khung điều khiển ánh sáng & tương tác nhỏ gọn */
+.compact-light-frame {
   pointer-events: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dock-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-block-size: 34px;
-  padding: 6px 13px;
+  gap: 3px;
+  padding: 4px 6px;
+  background: rgba(24, 20, 17, 0.82);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
   border-radius: 999px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(232, 221, 205, 0.22);
-  color: var(--light-beige);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.36);
+}
+
+.mini-ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-block-size: 30px;
+  min-inline-size: 30px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(232, 221, 205, 0.72);
   font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.dock-chip.active {
-  border-color: var(--warm-gold);
+.mini-ctrl-btn:hover {
+  background: rgba(249, 246, 240, 0.1);
+  color: var(--cream-white);
+}
+
+.mini-ctrl-btn.active {
+  background: rgba(233, 200, 121, 0.18);
+  border-color: rgba(233, 200, 121, 0.45);
   color: var(--warm-gold);
-  background: rgba(42, 35, 28, 0.88);
 }
 
-.dock-chip:hover {
-  border-color: var(--warm-gold);
-  transform: translateY(-1px);
+.mini-ctrl-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(232, 221, 205, 0.2);
+  margin: 0 2px;
 }
 
 /* ================= NATIVE MODAL DIALOGS ================= */
@@ -1262,27 +1277,29 @@ kbd {
     font-size: 1.2rem;
   }
   .free-explore-bottom-bar {
-    bottom: 10px;
+    bottom: 12px;
     left: 10px;
     right: 10px;
-    justify-content: center;
-    gap: 8px;
-  }
-  .controls-legend-pill {
-    padding: 6px 12px;
-    font-size: 0.7rem;
-  }
-  .quick-interact-dock {
-    flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 6px;
   }
-  .dock-chip {
-    padding: 5px 10px;
-    font-size: 0.72rem;
+  .compact-light-frame {
+    padding: 3px 5px;
+    gap: 2px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(24, 20, 17, 0.88);
+  }
+  .mini-ctrl-btn {
+    min-inline-size: 34px;
+    min-block-size: 34px;
+    padding: 6px;
+  }
+  .mini-ctrl-text {
+    display: none;
   }
   .touch-joystick-wrap {
-    bottom: 112px;
+    bottom: 18px;
     left: 14px;
   }
   .touch-joystick-base {

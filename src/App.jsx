@@ -13,6 +13,8 @@ import {
   DoorOpen,
   User,
   Eye,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import Room from './components/Scene/Room';
 import Chibi from './components/Character/Chibi';
@@ -414,53 +416,86 @@ export default function App() {
           touchMoveRef={touchMoveRef}
         />
 
-        {/* Thanh tác vụ tương tác nhanh tối giản (không che không gian 3D) */}
+        {/* 1 khung điều khiển ánh sáng & tương tác nhỏ gọn */}
         {exploration.mode === 'FREE_EXPLORE' && (
           <div className="free-explore-bottom-bar minimal-dock-only">
-            <div className="quick-interact-dock" role="group" aria-label="Tương tác nhanh trong phòng">
+            <div
+              className="compact-light-frame"
+              role="group"
+              aria-label="Điều khiển ánh sáng và đồ vật"
+            >
               <button
                 type="button"
-                className={`dock-chip ${interaction.doorOpen ? 'active' : ''}`}
-                onClick={() => interaction.handleObjectInteraction('door')}
-              >
-                <DoorOpen size={14} aria-hidden="true" />
-                <span>Cửa</span>
-              </button>
-              <button
-                type="button"
-                className={`dock-chip ${interaction.fireplaceOn ? 'active' : ''}`}
+                className={`mini-ctrl-btn ${interaction.fireplaceOn ? 'active' : ''}`}
                 onClick={() => interaction.handleObjectInteraction('fireplace')}
+                aria-label="Bật hoặc tắt lửa lò sưởi"
+                title="Lò sưởi"
               >
-                <Flame size={14} aria-hidden="true" />
-                <span>Lò Sưởi</span>
+                <Flame size={15} aria-hidden="true" />
+                <span className="mini-ctrl-text">Lò sưởi</span>
               </button>
               <button
                 type="button"
-                className={`dock-chip ${interaction.candlesOn ? 'active' : ''}`}
+                className={`mini-ctrl-btn ${interaction.candlesOn ? 'active' : ''}`}
                 onClick={() => interaction.handleObjectInteraction('candles')}
+                aria-label="Bật hoặc tắt nến"
+                title="Nến"
               >
-                <Flame size={14} aria-hidden="true" />
-                <span>Nến</span>
+                <Flame size={15} aria-hidden="true" />
+                <span className="mini-ctrl-text">Nến</span>
               </button>
               <button
                 type="button"
-                className={`dock-chip ${interaction.treeLightsOn ? 'active' : ''}`}
+                className={`mini-ctrl-btn ${interaction.treeLightsOn ? 'active' : ''}`}
                 onClick={() =>
                   interaction.handleObjectInteraction('christmas-tree')
                 }
+                aria-label="Bật hoặc tắt đèn cây thông"
+                title="Đèn cây thông"
               >
-                <Sparkles size={14} aria-hidden="true" />
-                <span>Đèn Cây Thông</span>
+                <Sparkles size={15} aria-hidden="true" />
+                <span className="mini-ctrl-text">Đèn cây</span>
               </button>
               <button
                 type="button"
-                className={`dock-chip ${interaction.giftsOpened ? 'active' : ''}`}
+                className={`mini-ctrl-btn ${!interaction.windowEveningMode ? 'active' : ''}`}
+                onClick={() =>
+                  interaction.setWindowEveningMode((prev) => !prev)
+                }
+                aria-label="Đổi ánh sáng ban ngày hoặc buổi tối"
+                title={interaction.windowEveningMode ? 'Chế độ Tối' : 'Chế độ Sáng'}
+              >
+                {interaction.windowEveningMode ? (
+                  <Moon size={15} aria-hidden="true" />
+                ) : (
+                  <Sun size={15} aria-hidden="true" />
+                )}
+                <span className="mini-ctrl-text">
+                  {interaction.windowEveningMode ? 'Tối' : 'Sáng'}
+                </span>
+              </button>
+              <span className="mini-ctrl-sep" aria-hidden="true" />
+              <button
+                type="button"
+                className={`mini-ctrl-btn ${interaction.giftsOpened ? 'active' : ''}`}
                 onClick={() =>
                   interaction.handleObjectInteraction('gift-boxes')
                 }
+                aria-label="Mở hoặc đóng hộp quà"
+                title="Hộp quà"
               >
-                <Gift size={14} aria-hidden="true" />
-                <span>Hộp Quà</span>
+                <Gift size={15} aria-hidden="true" />
+                <span className="mini-ctrl-text">Quà</span>
+              </button>
+              <button
+                type="button"
+                className={`mini-ctrl-btn ${interaction.doorOpen ? 'active' : ''}`}
+                onClick={() => interaction.handleObjectInteraction('door')}
+                aria-label="Mở hoặc đóng cửa chính"
+                title="Cửa"
+              >
+                <DoorOpen size={15} aria-hidden="true" />
+                <span className="mini-ctrl-text">Cửa</span>
               </button>
             </div>
           </div>
