@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTexture } from '@react-three/drei';
 import { getOakWoodTexture } from '../../assets/textures/proceduralTextures';
 
 export default function CoffeeTable({
@@ -9,7 +10,24 @@ export default function CoffeeTable({
   onInteract,
 }) {
   const oakTex = useMemo(() => getOakWoodTexture(), []);
+  const framePhotoTex = useTexture('./memories/chibi-1.jpg');
   const isHoveredCandles = hoveredObject?.id === 'candles';
+  const isHoveredPhoto = hoveredObject?.id === 'photo-frame';
+
+  const photoInteractData = {
+    interactable: true,
+    id: 'photo-frame',
+    name: 'Khung Ảnh Người Thương',
+    actionLabel: 'Xem Ảnh Kỷ Niệm',
+    area: 'Khu vực Sofa',
+  };
+
+  const handlePhotoClick = (e) => {
+    e.stopPropagation();
+    if (mode === 'FREE_EXPLORE') {
+      onInteract('photo-frame');
+    }
+  };
 
   const candleInteractData = {
     interactable: true,
@@ -157,8 +175,13 @@ export default function CoffeeTable({
         </group>
       </group>
 
-      {/* ================= 3. SCANDINAVIAN TABLETOP PHOTO FRAME WITH EASEL STAND ================= */}
-      <group position={[-0.16, 0.402, 0.25]} rotation={[0, -0.38, 0]}>
+      {/* ================= 3. SCANDINAVIAN TABLETOP PHOTO FRAME WITH CHIBI MEMORY ================= */}
+      <group
+        position={[-0.16, 0.402, 0.25]}
+        rotation={[0, -0.38, 0]}
+        userData={photoInteractData}
+        onClick={handlePhotoClick}
+      >
         {/* Tilted Frame Body */}
         <group position={[0, 0.112, 0]} rotation={[-0.18, 0, 0]}>
           {/* Warm Oak Outer Frame */}
@@ -169,6 +192,8 @@ export default function CoffeeTable({
               color="#C9A26E"
               roughness={0.38}
               metalness={0.18}
+              emissive={isHoveredPhoto ? '#E9C879' : '#000000'}
+              emissiveIntensity={isHoveredPhoto ? 0.28 : 0}
             />
           </mesh>
 
@@ -198,10 +223,10 @@ export default function CoffeeTable({
             />
           </mesh>
 
-          {/* Placeholder Photo Canvas */}
-          <mesh position={[0, 0, 0.01]}>
+          {/* Real Chibi Couple Memory Photo */}
+          <mesh position={[0, 0, 0.0105]}>
             <planeGeometry args={[0.12, 0.16]} />
-            <meshStandardMaterial color="#E6D8C5" roughness={0.55} />
+            <meshBasicMaterial map={framePhotoTex} />
           </mesh>
         </group>
 

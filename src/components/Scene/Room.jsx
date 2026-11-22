@@ -11,6 +11,8 @@ import CoffeeTable from '../Furniture/CoffeeTable';
 import DiningTable from '../Furniture/DiningTable';
 import Chairs from '../Furniture/Chairs';
 import Plants from '../Furniture/Plants';
+import WaypointMarker from './WaypointMarker';
+import HotspotBeacon from './HotspotBeacon';
 
 export default function Room({
   mode,
@@ -18,6 +20,7 @@ export default function Room({
   interaction,
   onTriggerInitialDoor,
   isMobileDevice = false,
+  waypointRef,
 }) {
   const dustRef = useRef();
 
@@ -150,6 +153,51 @@ export default function Room({
       />
 
       <Chairs isGuidedHighlighted={activeGuidedId === 'dining'} />
+
+      {/* Điểm chạm di chuyển thông minh (Click chuột phải / Chạm sàn) */}
+      <WaypointMarker waypointRef={waypointRef} />
+
+      {/* 4 Điểm khoanh vùng kỷ niệm thân thiện (ẩn gọn khi đang mở hộp thoại) */}
+      {(() => {
+        const showHotspots =
+          mode === 'FREE_EXPLORE' &&
+          !interaction.tvVideoOpen &&
+          !interaction.letterOpen &&
+          interaction.activePhotoIndex === null;
+        const done = interaction.discoveredMoments || [];
+        return (
+          <>
+            <HotspotBeacon
+              position={[0.55, 0.56, -1.42]}
+              label="🎁 Mở quà"
+              discovered={done.includes('gifts')}
+              visible={showHotspots}
+              onClick={() => interaction.handleObjectInteraction('gift-box:0')}
+            />
+            <HotspotBeacon
+              position={[1.85, 0.92, 0.42]}
+              label="💌 Đọc thư"
+              discovered={done.includes('letter')}
+              visible={showHotspots}
+              onClick={() => interaction.handleObjectInteraction('letter')}
+            />
+            <HotspotBeacon
+              position={[-1.4, 0.68, 0.82]}
+              label="🖼️ Xem ảnh"
+              discovered={done.includes('photo')}
+              visible={showHotspots}
+              onClick={() => interaction.handleObjectInteraction('photo-frame')}
+            />
+            <HotspotBeacon
+              position={[-2.15, 2.28, -2.76]}
+              label="📺 Xem phim"
+              discovered={done.includes('tv')}
+              visible={showHotspots}
+              onClick={() => interaction.handleObjectInteraction('tv')}
+            />
+          </>
+        );
+      })()}
 
       {/* Warm Floating Golden Light Motes */}
       <points ref={dustRef}>

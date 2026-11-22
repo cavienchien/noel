@@ -20,6 +20,22 @@ export default function DiningTable({
   }, []);
 
   const isHoveredCandles = hoveredObject?.id === 'candles';
+  const isHoveredLetter = hoveredObject?.id === 'letter';
+
+  const letterInteractData = {
+    interactable: true,
+    id: 'letter',
+    name: 'Thư Giáng Sinh Sáp Đỏ',
+    actionLabel: 'Mở Đọc Bức Thư',
+    area: 'Khu vực Bàn ăn',
+  };
+
+  const handleLetterClick = (e) => {
+    e.stopPropagation();
+    if (mode === 'FREE_EXPLORE') {
+      onInteract('letter');
+    }
+  };
 
   const candleInteractData = {
     interactable: true,
@@ -200,12 +216,22 @@ export default function DiningTable({
         )}
       </group>
 
-      {/* ================= UNOPENED SEALED ENVELOPE ON TABLE CORNER ================= */}
-      <group position={[-0.52, 0.778, 0.22]} rotation={[0, 0.32, 0]}>
+      {/* ================= INTERACTIVE SEALED ENVELOPE ON TABLE CORNER ================= */}
+      <group
+        position={[-0.52, 0.778, 0.22]}
+        rotation={[0, 0.32, 0]}
+        userData={letterInteractData}
+        onClick={handleLetterClick}
+      >
         {/* Envelope Base Body */}
         <mesh position={[0, 0.004, 0]} castShadow receiveShadow>
           <boxGeometry args={[0.24, 0.008, 0.16]} />
-          <meshStandardMaterial color="#FBF5EA" roughness={0.42} />
+          <meshStandardMaterial
+            color={isHoveredLetter ? '#FFF9ED' : '#FBF5EA'}
+            roughness={0.42}
+            emissive={isHoveredLetter ? '#E9C879' : '#000000'}
+            emissiveIntensity={isHoveredLetter ? 0.32 : 0}
+          />
         </mesh>
 
         {/* Closed Triangular Top Flap (Unopened) */}

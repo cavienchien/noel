@@ -1,54 +1,52 @@
 import React from 'react';
-import { X, Play } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import MemoryModals from './MemoryModals';
 
 export default function InteractionPrompt({ mode, interaction }) {
-  const { hoveredObject, tvVideoOpen, setTvVideoOpen } = interaction;
+  const { hoveredObject, handleObjectInteraction } = interaction;
 
-  if (mode !== 'FREE_EXPLORE' && mode !== 'OUTSIDE_DOOR') return null;
+  if (mode === 'OPENING_DOOR' || mode === 'ENTERING_ROOM') {
+    return (
+      <div className="guided-bottom-container">
+        <div className="guided-entering-pill">
+          <Sparkles size={15} aria-hidden="true" />
+          <span>Đang mở cửa bước vào căn phòng ấm áp...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode !== 'FREE_EXPLORE') return null;
+
+  const modalOpen =
+    interaction.tvVideoOpen ||
+    interaction.letterOpen ||
+    interaction.activePhotoIndex !== null;
 
   return (
     <>
-      {/* Tâm ngắm góc nhìn thứ nhất */}
-      {mode === 'FREE_EXPLORE' && (
+      {/* Tâm ngắm nhẹ tối giản */}
+      {!modalOpen && (
         <div
           className={`fps-reticle ${hoveredObject ? 'reticle-active' : ''}`}
           aria-hidden="true"
         />
       )}
 
-      {/* Khung phát Video khi bấm vào Tivi */}
-      {tvVideoOpen && (
-        <div
-          className="tv-video-modal-overlay"
-          onClick={() => setTvVideoOpen(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Màn hình Tivi"
+      {/* Nhãn tương tác nhỏ gọn khi trỏ vào vật thể 3D */}
+      {!modalOpen && hoveredObject && (
+        <button
+          type="button"
+          className="compact-hover-pill"
+          onClick={() => handleObjectInteraction(hoveredObject.id)}
         >
-          <div
-            className="tv-video-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="tv-video-close-btn"
-              onClick={() => setTvVideoOpen(false)}
-              aria-label="Đóng Tivi"
-            >
-              <X size={18} aria-hidden="true" />
-            </button>
-
-            <div className="tv-video-stage">
-              <div className="tv-video-placeholder">
-                <div className="tv-video-play-circle">
-                  <Play size={28} aria-hidden="true" />
-                </div>
-                <p>Khung phát Video Tivi (Sẵn sàng chèn video khi bạn yêu cầu)</p>
-              </div>
-            </div>
-          </div>
-        </div>
+          <span className="hover-pill-name">{hoveredObject.name}</span>
+          <span className="hover-pill-action">{hoveredObject.actionLabel}</span>
+        </button>
       )}
+
+      {/* Các khung hiển thị Kỷ Niệm: Tivi Video, Thư Tình Sáp Đỏ, Ảnh Chibi Polaroid */}
+      <MemoryModals interaction={interaction} />
     </>
   );
 }

@@ -1,7 +1,9 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { getGiftWrapTexture } from '../../assets/textures/proceduralTextures';
+import { MEMORY_PHOTOS } from '../../data/memoriesData';
 
 const dummy = new THREE.Object3D();
 
@@ -26,6 +28,12 @@ export default function ChristmasTree({
   const stripeTex = useMemo(() => getGiftWrapTexture('stripes'), []);
   const dotsTex = useMemo(() => getGiftWrapTexture('dots'), []);
   const kraftTex = useMemo(() => getGiftWrapTexture('kraft'), []);
+  const memoryTextures = useTexture([
+    './memories/chibi-1.jpg',
+    './memories/chibi-2.jpg',
+    './memories/chibi-3.jpg',
+    './memories/chibi-4.jpg',
+  ]);
 
   const isHoveredTree = hoveredObject?.id === 'christmas-tree';
   const isHoveredGifts = hoveredObject?.id === 'gift-boxes';
@@ -414,18 +422,31 @@ export default function ChristmasTree({
         </mesh>
       ))}
 
-      {/* ================= INTERACTIVE ORBITING GIFT BOXES AROUND THE TREE ================= */}
+      {/* ================= INTERACTIVE ORBITING GIFT BOXES WITH FLOATING CHIBI POLAROIDS ================= */}
       <group ref={giftCarouselRef}>
         {giftConfigs.map((cfg, idx) => {
-        const [w, h, d] = cfg.size;
-        return (
-          <group
-            key={idx}
-            position={cfg.pos}
-            rotation={[0, cfg.rotY, 0]}
-            userData={giftInteractData}
-            onClick={handleGiftClick}
-          >
+          const [w, h, d] = cfg.size;
+          const photoTex = memoryTextures[idx % memoryTextures.length];
+          const mem = MEMORY_PHOTOS[idx % MEMORY_PHOTOS.length];
+          const boxInteract = {
+            interactable: true,
+            id: `gift-box:${idx}`,
+            name: `Hộp Quà · ${mem.title}`,
+            actionLabel: 'Mở Ảnh Người Thương',
+            area: 'Cây thông Noel',
+          };
+          const handleThisGiftClick = (e) => {
+            e.stopPropagation();
+            if (mode === 'FREE_EXPLORE') onInteract(`gift-box:${idx}`);
+          };
+          return (
+            <group
+              key={idx}
+              position={cfg.pos}
+              rotation={[0, cfg.rotY, 0]}
+              userData={boxInteract}
+              onClick={handleThisGiftClick}
+            >
             <mesh castShadow receiveShadow>
               <boxGeometry args={[w, h, d]} />
               <meshStandardMaterial
@@ -500,21 +521,25 @@ export default function ChristmasTree({
               </mesh>
             </group>
 
-            {/* Surprise Glowing Keepsake */}
+            {/* Floating Polaroid Photo Card of Loved One Rising Out When Unwrapped */}
             <group
               ref={(el) => (giftSurpriseRefs.current[idx] = el)}
               position={[0, 0, 0]}
               scale={[0.01, 0.01, 0.01]}
             >
+              {/* White Polaroid Paper Frame */}
               <mesh>
-                <octahedronGeometry args={[0.068, 0]} />
-                <meshStandardMaterial
-                  color="#FFE494"
-                  emissive="#FFB732"
-                  emissiveIntensity={1.8}
-                  metalness={0.82}
-                  roughness={0.14}
-                />
+                <boxGeometry args={[0.24, 0.28, 0.012]} />
+                <meshStandardMaterial color="#FAF6EE" roughness={0.45} />
+              </mesh>
+              {/* Front & Back Chibi Memory Photo */}
+              <mesh position={[0, 0.018, 0.007]}>
+                <planeGeometry args={[0.205, 0.205]} />
+                <meshBasicMaterial map={photoTex} />
+              </mesh>
+              <mesh position={[0, 0.018, -0.007]} rotation={[0, Math.PI, 0]}>
+                <planeGeometry args={[0.205, 0.205]} />
+                <meshBasicMaterial map={photoTex} />
               </mesh>
             </group>
           </group>

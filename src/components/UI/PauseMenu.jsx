@@ -74,29 +74,29 @@ export default function PauseMenu({
         </div>
 
         <div className="pause-controls-summary">
-          <h3>Hướng Dẫn Điều Khiển</h3>
+          <h3>Thao Tác Nhanh</h3>
           <div className="controls-grid desktop-only-grid">
             <div>
-              <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>
-              <span>Di Chuyển Trong Phòng</span>
+              <kbd>Chuột Phải</kbd>
+              <span>Chạm Sàn Để Tự Đi Đến</span>
             </div>
             <div>
-              <kbd>Chuột / Cuộn</kbd>
-              <span>Xoay 360° &amp; Zoom Chi Tiết</span>
+              <kbd>W A S D</kbd>
+              <span>Di Chuyển Thủ Công</span>
+            </div>
+            <div>
+              <kbd>Kéo / Cuộn Chuột</kbd>
+              <span>Xoay 360° &amp; Thu Phóng Rộng</span>
             </div>
             <div>
               <kbd>Chuột Trái</kbd>
-              <span>Tương Tác Với Đồ Vật</span>
-            </div>
-            <div>
-              <kbd>ESC</kbd>
-              <span>Tạm Dừng / Tiếp Tục</span>
+              <span>Mở Quà, Thư, Ảnh &amp; Tivi</span>
             </div>
           </div>
           <div className="controls-grid touch-only-grid">
             <div>
-              <kbd>Cần Gạt Trái</kbd>
-              <span>Di Chuyển Tự Do 360°</span>
+              <kbd>Chạm Sàn / Cần Trái</kbd>
+              <span>Di Chuyển Mượt Mà</span>
             </div>
             <div>
               <kbd>Vuốt 1 Ngón</kbd>
@@ -104,11 +104,11 @@ export default function PauseMenu({
             </div>
             <div>
               <kbd>Chụm / Mở 2 Ngón</kbd>
-              <span>Zoom Phóng To Chi Tiết</span>
+              <span>Thu Phóng Chi Tiết / Toàn Phòng</span>
             </div>
             <div>
-              <kbd>Chạm Đồ Vật</kbd>
-              <span>Bật Lửa, Đèn, Mở Quà</span>
+              <kbd>Chạm Vật Thể</kbd>
+              <span>Mở Quà, Thư, Ảnh &amp; Tivi</span>
             </div>
           </div>
         </div>

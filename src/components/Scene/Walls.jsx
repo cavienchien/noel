@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTexture } from '@react-three/drei';
 import {
   getPlasterWallTexture,
   getShiplapTexture,
@@ -12,6 +13,10 @@ function WallPhotoFrame({
   width = 0.76,
   height = 0.94,
   oakTex,
+  photoTex,
+  photoIndex = 0,
+  mode,
+  onInteract,
   hasPictureLight = false,
 }) {
   const frameDepth = 0.042;
@@ -21,8 +26,27 @@ function WallPhotoFrame({
   const photoWidth = matWidth - 0.11;
   const photoHeight = matHeight - 0.11;
 
+  const frameInteract = {
+    interactable: true,
+    id: `photo:${photoIndex}`,
+    name: 'Khung Ảnh Kỷ Niệm',
+    actionLabel: 'Phóng To Xem Ảnh',
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (mode === 'FREE_EXPLORE' && onInteract) {
+      onInteract(`photo:${photoIndex}`);
+    }
+  };
+
   return (
-    <group position={position} rotation={rotation}>
+    <group
+      position={position}
+      rotation={rotation}
+      userData={frameInteract}
+      onClick={handleClick}
+    >
       {/* Warm Oak Outer Frame Box */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[width, height, frameDepth]} />
@@ -60,13 +84,17 @@ function WallPhotoFrame({
         />
       </mesh>
 
-      {/* Placeholder Photo Canvas (Ready for user images later) */}
+      {/* Real Chibi Memory Artwork inside Wall Gallery Frame */}
       <mesh position={[0, 0, frameDepth * 0.5 + 0.004]}>
         <planeGeometry args={[photoWidth, photoHeight]} />
-        <meshStandardMaterial color="#E6D8C5" roughness={0.55} />
+        {photoTex ? (
+          <meshBasicMaterial map={photoTex} />
+        ) : (
+          <meshStandardMaterial color="#E6D8C5" roughness={0.55} />
+        )}
       </mesh>
 
-      {/* Optional Brushed Brass Gallery Picture Light Above Frame */}
+      {/* Optional Brushed Brass Gallery Picture Light Above Frame (no extra GPU pointLight) */}
       {hasPictureLight && (
         <group position={[0, height * 0.5 + 0.09, 0.04]}>
           <mesh position={[0, 0.015, -0.02]}>
@@ -78,31 +106,30 @@ function WallPhotoFrame({
             />
           </mesh>
           <mesh position={[0, 0, 0.055]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.015, 0.015, width * 0.52, 14]} />
+            <cylinderGeometry args={[0.015, 0.015, width * 0.52, 12]} />
             <meshStandardMaterial
               color="#D4AF6A"
               metalness={0.88}
               roughness={0.18}
             />
           </mesh>
-          <pointLight
-            position={[0, -0.06, 0.12]}
-            color="#FFC870"
-            intensity={0.55}
-            distance={2.2}
-            decay={2}
-          />
         </group>
       )}
     </group>
   );
 }
 
-export default function Walls() {
+export default function Walls({ mode, onInteract }) {
   const plasterTex = useMemo(() => getPlasterWallTexture(), []);
   const shiplapTex = useMemo(() => getShiplapTexture(), []);
   const beamTex = useMemo(() => getRusticBeamTexture(), []);
   const oakTex = useMemo(() => getOakWoodTexture(), []);
+  const wallPhotos = useTexture([
+    './memories/chibi-1.jpg',
+    './memories/chibi-2.jpg',
+    './memories/chibi-3.jpg',
+    './memories/chibi-4.jpg',
+  ]);
 
   const wallColor = '#F3ECE1';
   const trimColor = '#F9F6F0';
@@ -308,6 +335,10 @@ export default function Walls() {
         width={0.72}
         height={0.92}
         oakTex={oakTex}
+        photoTex={wallPhotos[0]}
+        photoIndex={0}
+        mode={mode}
+        onInteract={onInteract}
       />
       <WallPhotoFrame
         position={[-4.69, 1.98, -0.35]}
@@ -315,6 +346,10 @@ export default function Walls() {
         width={1.06}
         height={0.82}
         oakTex={oakTex}
+        photoTex={wallPhotos[1]}
+        photoIndex={1}
+        mode={mode}
+        onInteract={onInteract}
         hasPictureLight
       />
       <WallPhotoFrame
@@ -323,6 +358,10 @@ export default function Walls() {
         width={0.72}
         height={0.92}
         oakTex={oakTex}
+        photoTex={wallPhotos[2]}
+        photoIndex={2}
+        mode={mode}
+        onInteract={onInteract}
       />
 
       {/* ================= EAST WALL (Right Wall: X = +4.8) ================= */}
@@ -346,6 +385,10 @@ export default function Walls() {
         width={0.72}
         height={0.92}
         oakTex={oakTex}
+        photoTex={wallPhotos[3]}
+        photoIndex={3}
+        mode={mode}
+        onInteract={onInteract}
       />
       <WallPhotoFrame
         position={[4.69, 2.04, 0.15]}
@@ -353,6 +396,10 @@ export default function Walls() {
         width={1.06}
         height={0.82}
         oakTex={oakTex}
+        photoTex={wallPhotos[0]}
+        photoIndex={0}
+        mode={mode}
+        onInteract={onInteract}
         hasPictureLight
       />
       <WallPhotoFrame
@@ -361,6 +408,10 @@ export default function Walls() {
         width={0.72}
         height={0.92}
         oakTex={oakTex}
+        photoTex={wallPhotos[2]}
+        photoIndex={2}
+        mode={mode}
+        onInteract={onInteract}
       />
 
       {/* ================= SOUTH WALL (Front Entrance Wall: Z = +3.6) ================= */}
@@ -385,13 +436,17 @@ export default function Walls() {
         <meshStandardMaterial color={trimColor} roughness={0.45} />
       </mesh>
 
-      {/* Gallery Photo Frames on South Wall - Left Side of Door (in view) */}
+      {/* Gallery Photo Frames on South Wall - Left Side of Door */}
       <WallPhotoFrame
         position={[3.75, 1.94, 3.47]}
         rotation={[0, Math.PI, 0]}
         width={0.68}
         height={0.88}
         oakTex={oakTex}
+        photoTex={wallPhotos[1]}
+        photoIndex={1}
+        mode={mode}
+        onInteract={onInteract}
       />
       <WallPhotoFrame
         position={[2.85, 1.98, 3.47]}
@@ -399,6 +454,10 @@ export default function Walls() {
         width={0.96}
         height={0.78}
         oakTex={oakTex}
+        photoTex={wallPhotos[3]}
+        photoIndex={3}
+        mode={mode}
+        onInteract={onInteract}
         hasPictureLight
       />
       <WallPhotoFrame
@@ -407,6 +466,10 @@ export default function Walls() {
         width={0.68}
         height={0.88}
         oakTex={oakTex}
+        photoTex={wallPhotos[0]}
+        photoIndex={0}
+        mode={mode}
+        onInteract={onInteract}
       />
 
       {/* Gallery Photo Frames on South Wall - Right Side of Door (above Sofa) */}
@@ -416,6 +479,10 @@ export default function Walls() {
         width={0.64}
         height={0.84}
         oakTex={oakTex}
+        photoTex={wallPhotos[2]}
+        photoIndex={2}
+        mode={mode}
+        onInteract={onInteract}
       />
       <WallPhotoFrame
         position={[-1.35, 2.0, 3.47]}
@@ -423,6 +490,10 @@ export default function Walls() {
         width={0.88}
         height={0.74}
         oakTex={oakTex}
+        photoTex={wallPhotos[1]}
+        photoIndex={1}
+        mode={mode}
+        onInteract={onInteract}
         hasPictureLight
       />
       <WallPhotoFrame
@@ -431,6 +502,10 @@ export default function Walls() {
         width={0.64}
         height={0.84}
         oakTex={oakTex}
+        photoTex={wallPhotos[3]}
+        photoIndex={3}
+        mode={mode}
+        onInteract={onInteract}
       />
 
       {/* ================= EXTERIOR FOYER / ENTRANCE HALLWAY (Z = 3.6 to 6.6) ================= */}

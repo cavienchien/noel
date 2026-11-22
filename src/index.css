@@ -1510,3 +1510,420 @@ kbd {
   justify-content: center;
   padding-left: 4px;
 }
+
+/* ================= EMOTIONAL MEMORIES UI, HOTSPOT BEACONS & NEON ACCENTS ================= */
+.moment-heart-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--warm-gold);
+}
+
+.moment-heart-badge.complete {
+  color: #FF8E8E;
+}
+
+.romantic-start-card {
+  max-width: 500px;
+  background: rgba(24, 19, 16, 0.84);
+  border: 1px solid rgba(233, 200, 121, 0.42);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55), 0 0 40px rgba(233, 200, 121, 0.12);
+}
+
+.start-hero-btn {
+  padding: 14px 32px;
+  font-size: 0.94rem;
+  box-shadow: 0 0 24px rgba(233, 200, 121, 0.42);
+}
+
+/* Modern Glowing Discovery Hotspot Pills in 3D */
+.hotspot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 226, 150, 0.75);
+  background: rgba(22, 17, 14, 0.82);
+  color: #FFF7E4;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(233, 200, 121, 0.35), 0 4px 12px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s ease, background 0.18s ease, opacity 0.25s ease;
+}
+
+.hotspot-pill:hover {
+  transform: scale(1.08);
+  background: rgba(38, 30, 22, 0.95);
+  border-color: #FFE8A3;
+}
+
+.hotspot-pill.discovered {
+  opacity: 0.48;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: rgba(233, 200, 121, 0.3);
+}
+
+.hotspot-pill.discovered:hover {
+  opacity: 0.95;
+}
+
+.hotspot-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #FFE28A;
+  box-shadow: 0 0 10px #FFD15C;
+  animation: hotspotPulse 1.8s ease-in-out infinite;
+}
+
+.hotspot-pill.discovered .hotspot-dot {
+  animation: none;
+  background: #8CC5A2;
+  box-shadow: none;
+}
+
+@keyframes hotspotPulse {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+}
+
+/* Compact Hover Action Pill */
+.compact-hover-pill {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 26;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 200, 121, 0.65);
+  background: rgba(24, 20, 17, 0.88);
+  color: var(--cream-white);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+}
+
+.hover-pill-name {
+  font-weight: 700;
+}
+
+.hover-pill-action {
+  color: var(--warm-gold);
+  font-weight: 600;
+}
+
+/* ================= COZY TV CINEMA MODAL ================= */
+.tv-cinema-dialog {
+  width: min(760px, calc(100vw - 24px));
+  padding: 18px 20px 20px;
+  background: rgba(18, 15, 13, 0.96);
+  border: 1px solid rgba(233, 200, 121, 0.4);
+}
+
+.memory-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.memory-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--warm-gold);
+}
+
+.memory-modal-title-wrap h2 {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  color: var(--cream-white);
+}
+
+.memory-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 36px;
+  min-block-size: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 221, 205, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cream-white);
+  cursor: pointer;
+}
+
+.cozy-tv-player {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cozy-tv-canvas {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  background: #100C0A;
+  border: 1px solid rgba(233, 200, 121, 0.22);
+  display: block;
+}
+
+.cozy-tv-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tv-ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 36px;
+  min-block-size: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(233, 200, 121, 0.35);
+  background: rgba(233, 200, 121, 0.14);
+  color: var(--warm-gold);
+  cursor: pointer;
+}
+
+.tv-seek-slider {
+  flex: 1;
+  accent-color: var(--warm-gold);
+  cursor: pointer;
+}
+
+/* ================= ROMANTIC LOVE LETTER MODAL ================= */
+.love-letter-dialog {
+  width: min(520px, calc(100vw - 24px));
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.love-letter-paper {
+  position: relative;
+  padding: 32px 28px 28px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #FCF7EE 0%, #F4E9D7 100%);
+  color: #36281E;
+  border: 2px solid #D8C29D;
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.58);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.letter-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 36px;
+  min-block-size: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(90, 62, 42, 0.25);
+  background: rgba(90, 62, 42, 0.08);
+  color: #4A3424;
+  cursor: pointer;
+}
+
+.letter-seal-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #C93232 0%, #8C1B1B 100%);
+  color: #FFE8B6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(158, 34, 34, 0.4);
+}
+
+.letter-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #9E2222;
+  margin-bottom: 4px;
+}
+
+.letter-heading {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  color: #2A1D15;
+  margin-bottom: 2px;
+}
+
+.letter-date {
+  display: block;
+  font-size: 0.78rem;
+  color: #7D6249;
+  margin-bottom: 18px;
+}
+
+.letter-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.92rem;
+  line-height: 1.72;
+  color: #3D2D21;
+}
+
+.letter-footer {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(145, 112, 78, 0.4);
+  text-align: right;
+}
+
+.letter-closing {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: #6B4429;
+}
+
+.letter-signature {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #9E2222;
+  margin-top: 4px;
+}
+
+/* ================= CHIBI POLAROID GALLERY MODAL ================= */
+.polaroid-dialog {
+  width: min(460px, calc(100vw - 24px));
+  background: rgba(24, 20, 17, 0.95);
+  border: 1px solid rgba(233, 200, 121, 0.42);
+}
+
+.polaroid-modal-card {
+  position: relative;
+  padding: 18px;
+}
+
+.polaroid-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  background: rgba(20, 16, 13, 0.75);
+}
+
+.polaroid-frame-sheet {
+  background: #FAF5EC;
+  color: #2D2118;
+  padding: 12px 12px 18px;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.polaroid-img-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #E8DDCD;
+  margin-bottom: 12px;
+}
+
+.polaroid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.polaroid-caption-area {
+  padding: 0 4px;
+}
+
+.polaroid-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #8C6A4A;
+  margin-bottom: 6px;
+}
+
+.polaroid-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  color: #9E2222;
+}
+
+.polaroid-title {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  color: #261B13;
+  margin-bottom: 6px;
+}
+
+.polaroid-text {
+  font-size: 0.85rem;
+  line-height: 1.58;
+  color: #4A392C;
+}
+
+.polaroid-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.polaroid-heart-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(233, 200, 121, 0.16);
+  color: #FF8E8E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .love-letter-paper {
+    padding: 24px 18px 20px;
+  }
+  .letter-heading {
+    font-size: 1.45rem;
+  }
+  .polaroid-modal-card {
+    padding: 12px;
+  }
+  .tv-cinema-dialog {
+    padding: 12px;
+  }
+  .hotspot-pill {
+    font-size: 0.66rem;
+    padding: 4px 9px;
+  }
+}

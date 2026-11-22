@@ -13,17 +13,15 @@ import {
   DoorOpen,
   User,
   Eye,
+  Heart,
 } from 'lucide-react';
 import Room from './components/Scene/Room';
 import Chibi from './components/Character/Chibi';
 import FirstPersonCamera from './components/Camera/FirstPersonCamera';
 import InteractionManager from './components/Interaction/InteractionManager';
 import StartScreen from './components/UI/StartScreen';
-import GuidedIntro from './components/UI/GuidedIntro';
 import InteractionPrompt from './components/UI/InteractionPrompt';
-import ExplorationProgress from './components/UI/ExplorationProgress';
 import PauseMenu from './components/UI/PauseMenu';
-import CompletionScreen from './components/UI/CompletionScreen';
 import TouchControls from './components/UI/TouchControls';
 import RotatePrompt from './components/UI/RotatePrompt';
 import { useExploration } from './hooks/useExploration';
@@ -63,9 +61,10 @@ export default function App() {
 
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.65);
-  const [currentProximityZone, setCurrentProximityZone] = useState(null);
   const [isMobileDevice] = useState(() => detectMobileOrTablet());
   const touchMoveRef = useRef({ x: 0, y: 0 });
+  const waypointRef = useRef({ active: false, x: 0, z: 0, stuckTime: 0 });
+
   // Góc nhìn: 'third' (thứ 3 với nhân vật Chibi) hoặc 'first' (thứ nhất)
   const [viewMode, setViewMode] = useState('third');
   const playerRef = useRef({
@@ -82,7 +81,6 @@ export default function App() {
     setViewMode((prev) => (prev === 'third' ? 'first' : 'third'));
   }, []);
 
-  // Phím V để đổi góc nhìn nhanh
   useEffect(() => {
     if (exploration.mode !== 'FREE_EXPLORE') return;
     const onKey = (e) => {
@@ -108,40 +106,22 @@ export default function App() {
     }
   }, []);
 
-  const handleQuickInteractArea = useCallback(
-    (areaName) => {
-      if (exploration.mode !== 'FREE_EXPLORE') return;
-      if (areaName === 'Lò sưởi')
-        interaction.handleObjectInteraction('fireplace');
-      if (areaName === 'Cây thông Noel')
-        interaction.handleObjectInteraction('christmas-tree');
-      if (areaName === 'Khu vực Sofa')
-        interaction.handleObjectInteraction('sofa');
-      if (areaName === 'Khu vực Bàn ăn')
-        interaction.handleObjectInteraction('dining-table');
-    },
-    [exploration.mode, interaction]
-  );
-
   const handleResetAll = useCallback(() => {
     interaction.setDoorOpen(false);
     interaction.setIsSittingOnSofa(false);
     interaction.setInspectingWindow(false);
-    interaction.setInspectingTable(null);
-    exploration.resetExperience();
+    interaction.setTvVideoOpen(false);
+    interaction.setLetterOpen(false);
+    interaction.setActivePhotoIndex(null);
+    waypointRef.current.active = false;
+    exploration.enterDirectly();
   }, [exploration, interaction]);
 
-  // Xác định tên khu vực hiện tại trên thanh trên cùng
-  const activeAreaLabel =
-    exploration.mode === 'GUIDED_TOUR' && exploration.currentGuidedStop
-      ? exploration.currentGuidedStop.areaKey
-      : exploration.mode === 'OUTSIDE_DOOR'
-      ? 'Trước Cửa Ra Vào'
-      : currentProximityZone || 'Phòng Khách & Phòng Ăn';
+  const momentsCount = interaction.discoveredMoments.length;
 
   return (
     <div className="app-shell">
-      {/* Thanh tiêu đề tối giản trên cùng */}
+      {/* Thanh trên cùng siêu tối giản — không che không gian 3D */}
       {exploration.mode !== 'START' && (
         <header className="hud-top-bar">
           <div className="hud-brand-pill">
@@ -150,11 +130,16 @@ export default function App() {
             <span className="brand-divider" aria-hidden="true">
               ·
             </span>
-            <span className="brand-area-tag">{activeAreaLabel}</span>
+            <span
+              className={`moment-heart-badge ${momentsCount >= 4 ? 'complete' : ''}`}
+              title="Số kỷ niệm đã mở trong phòng"
+            >
+              <Heart size={13} aria-hidden="true" />
+              <span>{momentsCount}/4</span>
+            </span>
           </div>
 
           <div className="hud-top-controls">
-            {/* Bật/tắt âm thanh & chỉnh âm lượng */}
             <div className="hud-audio-group">
               <button
                 type="button"
@@ -183,7 +168,6 @@ export default function App() {
               />
             </div>
 
-            {/* Nút đổi góc nhìn thứ 1 / thứ 3 */}
             {exploration.mode === 'FREE_EXPLORE' && (
               <button
                 type="button"
@@ -206,18 +190,15 @@ export default function App() {
               </button>
             )}
 
-            {/* Nút Tạm Dừng */}
             <button
               type="button"
               className="hud-icon-btn"
               onClick={() => exploration.setIsPaused(true)}
-              aria-label="Mở Menu Tạm Dừng"
+              aria-label="Mở Menu"
             >
               <Pause size={17} aria-hidden="true" />
-              <span className="hud-btn-label">Tạm Dừng</span>
             </button>
 
-            {/* Nút Quay Lại Màn Hình Chính */}
             <button
               type="button"
               className="hud-icon-btn"
@@ -237,7 +218,7 @@ export default function App() {
             fallback={
               <div className="loading-screen">
                 <div className="loading-spinner" aria-hidden="true" />
-                <p>Đang tải không gian 3D Ngôi Nhà Giáng Sinh...</p>
+                <p>Đang thắp sáng Ngôi Nhà Giáng Sinh...</p>
               </div>
             }
           >
@@ -255,7 +236,6 @@ export default function App() {
               <color attach="background" args={['#14110E']} />
               <fog attach="fog" args={['#261E18', 11, 26]} />
 
-              {/* Offline Procedural Studio Environment Reflections (128px on mobile for zero lag) */}
               <Environment resolution={isMobileDevice ? 128 : 256} frames={1}>
                 <Lightformer
                   form="rect"
@@ -283,7 +263,6 @@ export default function App() {
                 />
               </Environment>
 
-              {/* Bake ContactShadows once (frames={1}) on desktop and disable on mobile GPUs for smooth 60 FPS */}
               {!isMobileDevice && (
                 <ContactShadows
                   position={[0, 0.004, 0.2]}
@@ -305,13 +284,13 @@ export default function App() {
                 touchMoveRef={touchMoveRef}
                 viewMode={viewMode}
                 playerRef={playerRef}
+                waypointRef={waypointRef}
               />
 
               <InteractionManager
                 mode={exploration.mode}
                 isPaused={exploration.isPaused}
                 interaction={interaction}
-                onAreaProximityChange={setCurrentProximityZone}
                 playerRef={playerRef}
               />
 
@@ -325,57 +304,37 @@ export default function App() {
                 mode={exploration.mode}
                 currentGuidedStop={exploration.currentGuidedStop}
                 interaction={interaction}
-                onTriggerInitialDoor={exploration.triggerInitialDoorOpen}
+                onTriggerInitialDoor={exploration.enterDirectly}
                 isMobileDevice={isMobileDevice}
+                waypointRef={waypointRef}
               />
             </Canvas>
           </Suspense>
         </SceneErrorBoundary>
 
-        {/* Start Screen Overlay */}
+        {/* Màn hình mở đầu lãng mạn, tối giản — 1 chạm bước vào ngay */}
         <StartScreen
           mode={exploration.mode}
           onEnterDirectly={exploration.enterDirectly}
-          onStartGuided={exploration.startExperience}
         />
 
-        {/* Phase 1: Guided Exploration Overlays */}
-        <GuidedIntro
-          mode={exploration.mode}
-          guidedIndex={exploration.guidedIndex}
-          currentGuidedStop={exploration.currentGuidedStop}
-          onTriggerInitialDoor={exploration.triggerInitialDoorOpen}
-          onBeginGuidedTour={exploration.beginGuidedTour}
-          onNextStop={exploration.nextGuidedStop}
-          onPrevStop={exploration.prevGuidedStop}
-          onStartFreeExploration={exploration.startFreeExploration}
-        />
-
-        {/* Phase 2: Free Exploration Interaction Prompts & Sub-states */}
+        {/* Tương tác, Tâm ngắm, Khung Tivi, Thư Sáp Đỏ & Ảnh Polaroid Chibi */}
         <InteractionPrompt
           mode={exploration.mode}
           interaction={interaction}
         />
 
-        {/* Exploration Progress Tracker (Top-Right / Side) */}
-        <ExplorationProgress
-          mode={exploration.mode}
-          exploredAreas={exploration.exploredAreas}
-          currentProximityZone={currentProximityZone}
-          onQuickInteractArea={handleQuickInteractArea}
-        />
-
-        {/* Đề xuất xoay ngang màn hình trên điện thoại dọc */}
+        {/* Đề xuất xoay ngang gọn nhẹ trên điện thoại dọc */}
         <RotatePrompt />
 
-        {/* Điều khiển cảm ứng cho Smartphone / iPad */}
+        {/* Cần gạt cảm ứng tròn siêu mượt cho Smartphone / iPad */}
         <TouchControls
           mode={exploration.mode}
           isPaused={exploration.isPaused}
           touchMoveRef={touchMoveRef}
         />
 
-        {/* 1 khung điều khiển ánh sáng & tương tác nhỏ gọn */}
+        {/* 1 khung điều khiển ánh sáng & đồ vật nhỏ gọn */}
         {exploration.mode === 'FREE_EXPLORE' && (
           <div className="free-explore-bottom-bar minimal-dock-only">
             <div
@@ -423,7 +382,7 @@ export default function App() {
                   interaction.handleObjectInteraction('gift-boxes')
                 }
                 aria-label="Mở hoặc đóng hộp quà"
-                title="Hộp quà"
+                title="Hộp quà xoay"
               >
                 <Gift size={15} aria-hidden="true" />
                 <span className="mini-ctrl-text">Quà</span>
@@ -443,7 +402,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Native Accessible Modal Dialogs */}
       <PauseMenu
         isPaused={exploration.isPaused}
         setIsPaused={exploration.setIsPaused}
@@ -453,13 +411,6 @@ export default function App() {
         onVolumeChange={handleVolumeChange}
         onResetExperience={handleResetAll}
         onReturnHome={exploration.returnToMainScreen}
-      />
-
-      <CompletionScreen
-        showCompletionModal={exploration.showCompletionModal}
-        completionDismissed={exploration.completionDismissed}
-        onContinueExploring={() => exploration.setCompletionDismissed(true)}
-        onRestartFromBeginning={handleResetAll}
       />
     </div>
   );

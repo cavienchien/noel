@@ -188,6 +188,46 @@ class SoundEngine {
     osc.start(now);
     osc.stop(now + 0.18);
   }
+
+  // Âm thanh giọt thủy tinh hiện đại khi chấm điểm di chuyển (Click chuột phải / Chạm sàn)
+  playWaypointSound() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, now);
+    osc.frequency.exponentialRampToValueAtTime(990, now + 0.11);
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.11, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.18);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
+  // Âm thanh hợp âm đàn hạc ấm áp khi mở Thư Tình / Ảnh Kỷ Niệm
+  playMemoryChime() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((f, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now + idx * 0.07);
+      gain.gain.setValueAtTime(0.001, now + idx * 0.07);
+      gain.gain.linearRampToValueAtTime(0.1, now + idx * 0.07 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + idx * 0.07 + 0.75);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(now + idx * 0.07);
+      osc.stop(now + idx * 0.07 + 0.8);
+    });
+  }
 }
 
 export const soundEngine = new SoundEngine();

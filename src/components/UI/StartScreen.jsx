@@ -1,40 +1,33 @@
 import React from 'react';
-import { Play, Compass } from 'lucide-react';
+import { Sparkles, DoorOpen } from 'lucide-react';
 
-export default function StartScreen({
-  mode,
-  onEnterDirectly,
-  onStartGuided,
-}) {
+export default function StartScreen({ mode, onEnterDirectly }) {
   if (mode !== 'START') return null;
 
   return (
     <div className="start-screen-overlay">
-      <div className="start-card">
-        <h1 className="start-title">NGÔI NHÀ GIÁNG SINH</h1>
+      <div className="start-card romantic-start-card">
+        <div className="start-badge">
+          <Sparkles size={14} aria-hidden="true" />
+          <span>ĐÊM GIÁNG SINH · KHÔNG GIAN KỶ NIỆM</span>
+        </div>
+
+        <h1 className="start-title">Gửi Người Thương</h1>
 
         <p className="start-subtitle">
-          Nhấn để mở cửa bước vào không gian 3D và tự do khám phá.
+          Có một căn phòng nhỏ ấm áp ánh nến, những hộp quà ẩn chứa kỷ niệm và
+          một bức thư viết riêng đang chờ bạn mở cửa bước vào.
         </p>
 
         <div className="start-actions">
           <button
             type="button"
-            className="btn-primary-gold"
+            className="btn-primary-gold start-hero-btn"
             onClick={onEnterDirectly}
             autoFocus
           >
-            <Play size={18} aria-hidden="true" />
-            <span>CLICK ĐỂ KHÁM PHÁ</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn-secondary-ghost compact"
-            onClick={onStartGuided}
-          >
-            <Compass size={16} aria-hidden="true" />
-            <span>Giới thiệu nhanh 4 khu vực</span>
+            <DoorOpen size={19} aria-hidden="true" />
+            <span>MỞ CỬA BƯỚC VÀO</span>
           </button>
         </div>
       </div>
