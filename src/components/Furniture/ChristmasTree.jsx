@@ -18,6 +18,8 @@ export default function ChristmasTree({
   const lightsMeshRef = useRef();
   const ornamentsMeshRef = useRef();
   const beadsMeshRef = useRef();
+  const giftCarouselRef = useRef();
+  const giftSpinSpeedRef = useRef(0);
   const giftLidRefs = useRef([]);
   const giftSurpriseRefs = useRef([]);
 
@@ -140,60 +142,26 @@ export default function ChristmasTree({
     }
   }, [fairyLights, ornaments, beadGarlands]);
 
-  // Gift boxes arranged around tree base
-  const giftConfigs = useMemo(
-    () => [
-      {
-        pos: [-0.46, 0.16, 0.36],
-        size: [0.32, 0.28, 0.3],
-        boxColor: '#FFFFFF',
-        map: stripeTex,
-        ribbonColor: '#B22222',
-        rotY: 0.18,
-      },
-      {
-        pos: [-0.12, 0.13, 0.54],
-        size: [0.27, 0.22, 0.26],
-        boxColor: '#FFFFFF',
-        map: dotsTex,
-        ribbonColor: '#B22222',
-        rotY: -0.12,
-      },
-      {
-        pos: [0.24, 0.14, 0.48],
-        size: [0.28, 0.24, 0.26],
-        boxColor: '#A62424',
-        map: null,
-        ribbonColor: '#E9C879',
-        rotY: 0.25,
-      },
-      {
-        pos: [0.52, 0.15, 0.26],
-        size: [0.29, 0.26, 0.28],
-        boxColor: '#FFFFFF',
-        map: kraftTex,
-        ribbonColor: '#F5EFE6',
-        rotY: -0.28,
-      },
-      {
-        pos: [-0.56, 0.12, -0.04],
-        size: [0.25, 0.2, 0.24],
-        boxColor: '#FFFFFF',
-        map: kraftTex,
-        ribbonColor: '#A62424',
-        rotY: 0.4,
-      },
-      {
-        pos: [0.46, 0.12, -0.14],
-        size: [0.26, 0.22, 0.25],
-        boxColor: '#FFFFFF',
-        map: stripeTex,
-        ribbonColor: '#E9C879',
-        rotY: -0.35,
-      },
-    ],
-    [stripeTex, dotsTex, kraftTex]
-  );
+  // 6 Gift boxes arranged cleanly in a visible outer circle around the tree (outside the lower pine canopy)
+  const giftConfigs = useMemo(() => {
+    const specs = [
+      { size: [0.32, 0.28, 0.3], boxColor: '#FFFFFF', map: stripeTex, ribbonColor: '#B22222' },
+      { size: [0.27, 0.23, 0.27], boxColor: '#FFFFFF', map: dotsTex, ribbonColor: '#B22222' },
+      { size: [0.29, 0.25, 0.27], boxColor: '#A62424', map: null, ribbonColor: '#E9C879' },
+      { size: [0.3, 0.26, 0.28], boxColor: '#FFFFFF', map: kraftTex, ribbonColor: '#F5EFE6' },
+      { size: [0.26, 0.22, 0.25], boxColor: '#FFFFFF', map: kraftTex, ribbonColor: '#A62424' },
+      { size: [0.28, 0.24, 0.26], boxColor: '#FFFFFF', map: stripeTex, ribbonColor: '#E9C879' },
+    ];
+    const radius = 0.94;
+    return specs.map((s, idx) => {
+      const ang = (idx / specs.length) * Math.PI * 2 + 0.52;
+      return {
+        ...s,
+        pos: [Math.cos(ang) * radius, s.size[1] * 0.5 + 0.03, Math.sin(ang) * radius],
+        rotY: -ang + Math.PI / 2,
+      };
+    });
+  }, [stripeTex, dotsTex, kraftTex]);
 
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime;
@@ -209,6 +177,17 @@ export default function ChristmasTree({
         const pulse = 0.85 + Math.sin(t * 3.2) * 0.15;
         mat.color.setRGB(1.0 * pulse, 0.9 * pulse, 0.58 * pulse);
       }
+    }
+
+    // Smooth carousel orbit around the Christmas tree trunk when gifts are opened
+    const targetSpin = giftsOpened ? 0.85 : 0;
+    giftSpinSpeedRef.current = THREE.MathUtils.lerp(
+      giftSpinSpeedRef.current,
+      targetSpin,
+      Math.min(1, delta * 3.2)
+    );
+    if (giftCarouselRef.current && giftSpinSpeedRef.current > 0.001) {
+      giftCarouselRef.current.rotation.y += delta * giftSpinSpeedRef.current;
     }
 
     // Smooth Gift Box Unwrapping Animation
@@ -292,9 +271,9 @@ export default function ChristmasTree({
 
   return (
     <group position={[0.55, 0, -2.35]}>
-      {/* Plush Round Faux-Fur White Tree Skirt */}
+      {/* Plush Round Faux-Fur White Tree Skirt (widened so outer gift ring sits cleanly on it) */}
       <mesh position={[0, 0.02, 0]} receiveShadow>
-        <cylinderGeometry args={[0.95, 0.99, 0.04, 24]} />
+        <cylinderGeometry args={[1.16, 1.2, 0.04, 28]} />
         <meshStandardMaterial color="#F6F1E9" roughness={0.92} />
       </mesh>
 
@@ -435,8 +414,9 @@ export default function ChristmasTree({
         </mesh>
       ))}
 
-      {/* ================= INTERACTIVE PATTERNED GIFT BOXES UNDER TREE ================= */}
-      {giftConfigs.map((cfg, idx) => {
+      {/* ================= INTERACTIVE ORBITING GIFT BOXES AROUND THE TREE ================= */}
+      <group ref={giftCarouselRef}>
+        {giftConfigs.map((cfg, idx) => {
         const [w, h, d] = cfg.size;
         return (
           <group
@@ -540,6 +520,7 @@ export default function ChristmasTree({
           </group>
         );
       })}
+      </group>
     </group>
   );
 }
