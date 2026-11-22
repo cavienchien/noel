@@ -66,7 +66,6 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.65);
   const [currentProximityZone, setCurrentProximityZone] = useState(null);
-  const [showTouchHint, setShowTouchHint] = useState(true);
   const [isMobileDevice] = useState(() => detectMobileOrTablet());
   const touchMoveRef = useRef({ x: 0, y: 0 });
   // Góc nhìn: 'third' (thứ 3 với nhân vật Chibi) hoặc 'first' (thứ nhất)
@@ -95,37 +94,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [exploration.mode, exploration.isPaused, toggleViewMode]);
 
-  useEffect(() => {
-    if (exploration.mode === 'FREE_EXPLORE') {
-      setShowTouchHint(true);
-      let isDown = false;
-      const hideOnRotate = () => setShowTouchHint(false);
-      const onPointerDown = () => {
-        isDown = true;
-      };
-      const onPointerMove = () => {
-        if (isDown) setShowTouchHint(false);
-      };
-      const onPointerUp = () => {
-        isDown = false;
-      };
-
-      window.addEventListener('touchmove', hideOnRotate, { passive: true });
-      window.addEventListener('pointerdown', onPointerDown, { passive: true });
-      window.addEventListener('pointermove', onPointerMove, { passive: true });
-      window.addEventListener('pointerup', onPointerUp, { passive: true });
-      const timer = setTimeout(hideOnRotate, 3000);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('touchmove', hideOnRotate);
-        window.removeEventListener('pointerdown', onPointerDown);
-        window.removeEventListener('pointermove', onPointerMove);
-        window.removeEventListener('pointerup', onPointerUp);
-      };
-    }
-  }, [exploration.mode]);
-
   const handleToggleMute = useCallback(() => {
     soundEngine.init();
     const muted = soundEngine.toggleMute();
@@ -141,13 +109,6 @@ export default function App() {
       setIsMuted(false);
     }
   }, []);
-
-  const handleSkipToFreeExplore = useCallback(() => {
-    soundEngine.init();
-    soundEngine.startMusic();
-    interaction.setDoorOpen(true);
-    exploration.startFreeExploration();
-  }, [exploration, interaction]);
 
   const handleQuickInteractArea = useCallback(
     (areaName) => {

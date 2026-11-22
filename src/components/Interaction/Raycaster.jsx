@@ -2,6 +2,17 @@ import { useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+function getInteractableData(obj) {
+  let cur = obj;
+  while (cur) {
+    if (cur.userData && cur.userData.interactable) {
+      return cur.userData;
+    }
+    cur = cur.parent;
+  }
+  return null;
+}
+
 export default function Raycaster({ mode, isPaused, onHoverChange }) {
   const { camera, scene, pointer } = useThree();
   const raycaster = useRef(new THREE.Raycaster());
@@ -17,7 +28,7 @@ export default function Raycaster({ mode, isPaused, onHoverChange }) {
   }, [onHoverChange]);
 
   useFrame((state) => {
-    if (isPaused) {
+    if (isPaused || (mode !== 'OUTSIDE_DOOR' && mode !== 'FREE_EXPLORE')) {
       if (currentHoverId.current !== null) {
         currentHoverId.current = null;
         onHoverChange(null);
@@ -25,24 +36,15 @@ export default function Raycaster({ mode, isPaused, onHoverChange }) {
       return;
     }
 
-    if (mode !== 'OUTSIDE_DOOR' && mode !== 'FREE_EXPLORE') {
-      if (currentHoverId.current !== null) {
-        currentHoverId.current = null;
-        onHoverChange(null);
-      }
-      return;
-    }
-
-    // Throttle raycast to ~15 checks/sec for silky smooth FPS on all devices
     const now = state.clock.elapsedTime;
     if (now - lastCheck.current < 0.065) return;
     lastCheck.current = now;
 
-    // Refresh cached list of interactable meshes only once every 2 seconds
+    // Cache every Mesh that either has interactable userData itself OR lives inside an interactable Group (e.g. Gift Boxes, Candles, Door Handle)
     if (now - lastCacheTime.current > 2.0 || interactablesRef.current.length === 0) {
       const list = [];
       scene.traverse((obj) => {
-        if (obj.isMesh && obj.userData && obj.userData.interactable) {
+        if (obj.isMesh && getInteractableData(obj)) {
           list.push(obj);
         }
       });
@@ -56,7 +58,6 @@ export default function Raycaster({ mode, isPaused, onHoverChange }) {
     raycaster.current.setFromCamera(coords, camera);
     raycaster.current.far = 16;
 
-    // Test ONLY interactable meshes (25x faster than traversing entire scene!)
     const intersects = raycaster.current.intersectObjects(
       interactablesRef.current,
       false
@@ -64,13 +65,13 @@ export default function Raycaster({ mode, isPaused, onHoverChange }) {
     let found = null;
 
     for (let i = 0; i < intersects.length; i++) {
-      const obj = intersects[i].object;
-      if (obj.userData && obj.userData.interactable) {
-        if (mode === 'OUTSIDE_DOOR' && obj.userData.id !== 'door') {
+      const data = getInteractableData(intersects[i].object);
+      if (data) {
+        if (mode === 'OUTSIDE_DOOR' && data.id !== 'door') {
           continue;
         }
         found = {
-          ...obj.userData,
+          ...data,
           distance: intersects[i].distance,
         };
         break;
