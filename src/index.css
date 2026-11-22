@@ -1105,77 +1105,110 @@ kbd {
   }
 }
 
-/* ================= TOUCH D-PAD CONTROLS (SMARTPHONE & IPAD) ================= */
-.touch-only-legend {
+/* ================= ANALOG VIRTUAL THUMB JOYSTICK (SMARTPHONE & IPAD) ================= */
+.touch-only-legend,
+.touch-only-grid {
   display: none;
 }
 
-.touch-dpad-container {
+.touch-joystick-wrap {
   display: none;
   position: fixed;
-  bottom: 78px;
+  bottom: 72px;
   left: 18px;
   z-index: 26;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.touch-dpad-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.touch-dpad-btn {
+.touch-joystick-base {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: rgba(24, 20, 17, 0.58);
+  border: 1.5px solid rgba(233, 200, 121, 0.42);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.34);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-inline-size: 48px;
-  min-block-size: 48px;
-  border-radius: 14px;
-  background: rgba(26, 22, 19, 0.72);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(233, 200, 121, 0.38);
-  color: var(--cream-white);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
   touch-action: none;
-  cursor: pointer;
-  transition: transform 0.1s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.touch-dpad-btn:active {
-  background: rgba(233, 200, 121, 0.35);
+.touch-joystick-base.active {
+  background: rgba(34, 28, 22, 0.76);
   border-color: var(--warm-gold);
-  transform: scale(0.94);
+}
+
+.touch-joystick-knob {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #F7DF9C 0%, #C89E4C 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.touch-joystick-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(249, 246, 240, 0.78);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 @media (pointer: coarse) {
-  .touch-dpad-container {
+  .touch-joystick-wrap {
     display: flex;
   }
-  .desktop-only-legend {
+  .desktop-only-legend,
+  .desktop-only-grid {
     display: none;
   }
   .touch-only-legend {
     display: inline-flex;
   }
+  .touch-only-grid {
+    display: grid;
+  }
   .hud-icon-btn,
   .dock-chip {
-    min-block-size: 42px;
-    padding: 8px 14px;
+    min-block-size: 40px;
+    padding: 7px 13px;
+  }
+  /* Giảm tải GPU compositor trên điện thoại/iPad: thay blur nặng bằng nền bán trong suốt mượt */
+  .hud-brand-pill,
+  .hud-audio-group,
+  .hud-icon-btn,
+  .guided-card,
+  .guided-door-card,
+  .exploration-progress-panel,
+  .controls-legend-pill,
+  .dock-chip,
+  .interaction-prompt-floating,
+  .rotate-landscape-prompt {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(24, 20, 17, 0.86);
   }
 }
 
 @media (max-width: 1024px) {
-  .desktop-only-legend {
+  .desktop-only-legend,
+  .desktop-only-grid {
     display: none;
   }
   .touch-only-legend {
     display: inline-flex;
+  }
+  .touch-only-grid {
+    display: grid;
   }
 }
 
@@ -1248,9 +1281,17 @@ kbd {
     padding: 5px 10px;
     font-size: 0.72rem;
   }
-  .touch-dpad-container {
-    bottom: 122px;
-    left: 12px;
+  .touch-joystick-wrap {
+    bottom: 112px;
+    left: 14px;
+  }
+  .touch-joystick-base {
+    width: 86px;
+    height: 86px;
+  }
+  .touch-joystick-knob {
+    width: 38px;
+    height: 38px;
   }
   .guided-door-card {
     flex-direction: column;
@@ -1335,14 +1376,17 @@ kbd {
     top: 52px;
     right: 12px;
   }
-  .touch-dpad-container {
-    bottom: 62px;
+  .touch-joystick-wrap {
+    bottom: 54px;
     left: 14px;
-    gap: 5px;
   }
-  .touch-dpad-btn {
-    min-inline-size: 42px;
-    min-block-size: 42px;
+  .touch-joystick-base {
+    width: 82px;
+    height: 82px;
+  }
+  .touch-joystick-knob {
+    width: 36px;
+    height: 36px;
   }
   .guided-bottom-container {
     bottom: 10px;

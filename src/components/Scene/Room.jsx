@@ -17,12 +17,13 @@ export default function Room({
   currentGuidedStop,
   interaction,
   onTriggerInitialDoor,
+  isMobileDevice = false,
 }) {
   const dustRef = useRef();
 
-  // Subtle floating golden dust motes in the warm indoor air
+  // Subtle floating golden dust motes (lighter count on mobile/iPad GPUs)
   const particlePositions = useMemo(() => {
-    const count = 90;
+    const count = isMobileDevice ? 32 : 90;
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       arr[i * 3] = (Math.random() - 0.5) * 8.4;
@@ -52,33 +53,33 @@ export default function Room({
 
   return (
     <group>
-      {/* Global Warm Scandinavian Ambient & Hemisphere Lighting */}
+      {/* Global Warm Candlelit Scandinavian Ambient & Hemisphere Lighting */}
       <ambientLight
-        intensity={interaction.windowEveningMode ? 0.38 : 0.62}
-        color="#FFF6E8"
+        intensity={interaction.windowEveningMode ? 0.14 : 0.24}
+        color="#FFD8A8"
       />
       <hemisphereLight
         args={[
-          '#FFF8EE',
-          '#DFD3C3',
-          interaction.windowEveningMode ? 0.32 : 0.55,
+          '#FFD6A0',
+          '#382B22',
+          interaction.windowEveningMode ? 0.15 : 0.25,
         ]}
       />
 
-      {/* Warm Ceiling Fill Lights */}
+      {/* Softened Ceiling Fill Lights so Candlelight Dominates */}
       <pointLight
         position={[-1.5, 3.3, 0.2]}
-        intensity={0.65}
-        distance={9}
+        intensity={0.12}
+        distance={8}
         decay={2}
-        color="#FFF0D4"
+        color="#FFD296"
       />
       <pointLight
         position={[2.1, 3.3, 0.2]}
-        intensity={0.55}
-        distance={9}
+        intensity={0.1}
+        distance={8}
         decay={2}
-        color="#FFF2DC"
+        color="#FFD296"
       />
       {/* Exterior Foyer Welcome Light */}
       <pointLight
@@ -104,6 +105,7 @@ export default function Room({
         windowEveningMode={interaction.windowEveningMode}
         mode={mode}
         onInteract={interaction.handleObjectInteraction}
+        isMobileDevice={isMobileDevice}
       />
 
       {/* Furniture & Decor Areas */}
@@ -114,6 +116,7 @@ export default function Room({
         isGuidedHighlighted={activeGuidedId === 'fireplace'}
         mode={mode}
         onInteract={interaction.handleObjectInteraction}
+        isMobileDevice={isMobileDevice}
       />
 
       <ChristmasTree
@@ -123,6 +126,7 @@ export default function Room({
         isGuidedHighlighted={activeGuidedId === 'tree'}
         mode={mode}
         onInteract={interaction.handleObjectInteraction}
+        isMobileDevice={isMobileDevice}
       />
 
       <Sofa

@@ -13,6 +13,7 @@ export default function Fireplace({
   isGuidedHighlighted,
   mode,
   onInteract,
+  isMobileDevice = false,
 }) {
   const flameGroupRef = useRef();
   const fireLightRef = useRef();
@@ -293,7 +294,7 @@ export default function Fireplace({
           </group>
         )}
 
-        {/* Dynamic Fire PointLight Reflecting onto Floor & Surroundings */}
+        {/* Dynamic Fire PointLight Reflecting onto Floor & Surroundings (disable 6-pass cube shadow on mobile GPUs) */}
         <pointLight
           ref={fireLightRef}
           position={[0, 0.06, 0.48]}
@@ -301,7 +302,7 @@ export default function Fireplace({
           intensity={fireplaceOn ? 2.35 : 0}
           distance={7.0}
           decay={1.8}
-          castShadow
+          castShadow={!isMobileDevice}
         />
       </group>
 
@@ -418,6 +419,16 @@ export default function Fireplace({
           )}
         </group>
       </group>
+
+      {candlesOn && (
+        <pointLight
+          position={[-0.35, 1.72, 0.35]}
+          color="#FFA938"
+          intensity={1.75}
+          distance={5.6}
+          decay={1.6}
+        />
+      )}
 
       {/* ================= 4. FRAMED WINTER LANDSCAPE PAINTING & BRASS PICTURE LIGHT ================= */}
       <group position={[0, 2.26, 0.02]}>
@@ -567,10 +578,10 @@ export default function Fireplace({
             </mesh>
             <pointLight
               position={[0, 0.22, 0]}
-              color="#FFB84D"
-              intensity={0.6}
-              distance={2.6}
-              decay={2}
+              color="#FFA630"
+              intensity={1.55}
+              distance={5.0}
+              decay={1.6}
             />
           </>
         )}

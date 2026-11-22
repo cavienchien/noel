@@ -75,7 +75,7 @@ export default function PauseMenu({
 
         <div className="pause-controls-summary">
           <h3>Hướng Dẫn Điều Khiển</h3>
-          <div className="controls-grid">
+          <div className="controls-grid desktop-only-grid">
             <div>
               <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>
               <span>Di Chuyển Trong Phòng</span>
@@ -91,6 +91,24 @@ export default function PauseMenu({
             <div>
               <kbd>ESC</kbd>
               <span>Tạm Dừng / Tiếp Tục</span>
+            </div>
+          </div>
+          <div className="controls-grid touch-only-grid">
+            <div>
+              <kbd>Cần Gạt Trái</kbd>
+              <span>Di Chuyển Tự Do 360°</span>
+            </div>
+            <div>
+              <kbd>Vuốt 1 Ngón</kbd>
+              <span>Xoay Góc Nhìn 360°</span>
+            </div>
+            <div>
+              <kbd>Chạm Đồ Vật</kbd>
+              <span>Bật Lửa, Đèn, Mở Quà</span>
+            </div>
+            <div>
+              <kbd>Nút Tạm Dừng</kbd>
+              <span>Mở Menu &amp; Âm Lượng</span>
             </div>
           </div>
         </div>

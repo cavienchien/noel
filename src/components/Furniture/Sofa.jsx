@@ -86,9 +86,9 @@ export default function Sofa({
         </mesh>
         <pointLight
           position={[0.76, 1.62, 0]}
-          color="#FFE3A1"
-          intensity={0.7}
-          distance={3.8}
+          color="#FFC87A"
+          intensity={0.25}
+          distance={3.2}
           decay={2}
         />
       </group>

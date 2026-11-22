@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RotateCw, X } from 'lucide-react';
 
 export default function RotatePrompt() {
   const [dismissed, setDismissed] = useState(false);
   const [hintText, setHintText] = useState('Xoay ngang để xem 3D đẹp hơn');
+
+  useEffect(() => {
+    if (dismissed) return;
+    const hidePrompt = () => setDismissed(true);
+    window.addEventListener('touchmove', hidePrompt, { passive: true });
+    window.addEventListener('orientationchange', hidePrompt);
+    return () => {
+      window.removeEventListener('touchmove', hidePrompt);
+      window.removeEventListener('orientationchange', hidePrompt);
+    };
+  }, [dismissed]);
 
   if (dismissed) return null;
 

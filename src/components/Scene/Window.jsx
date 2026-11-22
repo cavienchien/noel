@@ -6,13 +6,14 @@ export default function Window({
   windowEveningMode,
   mode,
   onInteract,
+  isMobileDevice = false,
 }) {
   const snowRef = useRef();
   const isHovered = hoveredObject?.id === 'window';
 
-  // Generate 3D falling snow particles outside the window
+  // Generate 3D falling snow particles outside the window (lighter count on mobile)
   const snowPositions = useMemo(() => {
-    const count = 220;
+    const count = isMobileDevice ? 85 : 220;
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       arr[i * 3] = (Math.random() - 0.5) * 4.4;
@@ -152,17 +153,15 @@ export default function Window({
             <meshStandardMaterial color="#F6F3EC" roughness={0.38} />
           </mesh>
 
-          {/* Soft Blue-Tinted Window Glass Pane */}
+          {/* Soft Blue-Tinted Window Glass Pane (fast standard transparent glass without extra transmission render pass) */}
           <mesh userData={interactData} onClick={handleClick}>
             <planeGeometry args={[1.02, 1.28]} />
-            <meshPhysicalMaterial
+            <meshStandardMaterial
               color={windowEveningMode ? '#8CAEC4' : '#D5E8F2'}
               transparent
-              opacity={0.24}
-              roughness={0.06}
-              metalness={0.12}
-              transmission={0.78}
-              reflectivity={0.65}
+              opacity={0.22}
+              roughness={0.08}
+              metalness={0.18}
             />
           </mesh>
         </group>
@@ -237,13 +236,13 @@ export default function Window({
         </points>
       </group>
 
-      {/* Natural Window Daylight Streaming into Room */}
+      {/* Soft Window Moonlight / Daylight Streaming into Room */}
       <directionalLight
         position={[1.8, 1.6, -2.5]}
-        intensity={windowEveningMode ? 0.38 : 1.25}
-        color={windowEveningMode ? '#9AB8D9' : '#FFF7E8'}
+        intensity={windowEveningMode ? 0.16 : 0.52}
+        color={windowEveningMode ? '#8AA8C7' : '#FFE8C8'}
         castShadow
-        shadow-mapSize={[1024, 1024]}
+        shadow-mapSize={isMobileDevice ? [512, 512] : [1024, 1024]}
         shadow-bias={-0.0005}
       />
     </group>

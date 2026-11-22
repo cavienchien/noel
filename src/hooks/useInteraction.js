@@ -10,7 +10,7 @@ export function useInteraction({ markAreaExplored }) {
   const [giftsOpened, setGiftsOpened] = useState(false);
   const [isSittingOnSofa, setIsSittingOnSofa] = useState(false);
   const [inspectingWindow, setInspectingWindow] = useState(false);
-  const [windowEveningMode, setWindowEveningMode] = useState(false);
+  const [windowEveningMode, setWindowEveningMode] = useState(true);
   const [inspectingTable, setInspectingTable] = useState(null); // null | 'coffee' | 'dining'
 
   // Currently hovered / targeted interactive object from Raycaster

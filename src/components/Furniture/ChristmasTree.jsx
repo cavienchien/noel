@@ -10,6 +10,7 @@ export default function ChristmasTree({
   isGuidedHighlighted,
   mode,
   onInteract,
+  isMobileDevice = false,
 }) {
   const starRef = useRef();
   const lightsGroupRef = useRef();
@@ -35,9 +36,10 @@ export default function ChristmasTree({
     const stars = [];
     const beads = [];
 
-    // 110 Warm Golden LED Fairy Lights
-    for (let i = 0; i < 110; i++) {
-      const t = i / 109;
+    // Warm Golden LED Fairy Lights (lighter draw calls on mobile/iPad)
+    const lightCount = isMobileDevice ? 58 : 110;
+    for (let i = 0; i < lightCount; i++) {
+      const t = i / (lightCount - 1);
       const y = 0.42 + t * 2.18;
       const maxR = (1 - t * 0.84) * 0.82;
       const angle = t * Math.PI * 20;
@@ -47,10 +49,11 @@ export default function ChristmasTree({
       });
     }
 
-    // 54 Metallic & Matte Ornaments (Crimson Red, Champagne Gold, Pearl Cream, Warm Bronze — noel.jpe + merry.jpe)
+    // Metallic & Matte Ornaments
     const palette = ['#B22222', '#E9C879', '#F9F6F0', '#D4A857', '#9E2222', '#EFE6D5'];
-    for (let i = 0; i < 54; i++) {
-      const t = (i + 0.4) / 54;
+    const baubleCount = isMobileDevice ? 36 : 54;
+    for (let i = 0; i < baubleCount; i++) {
+      const t = (i + 0.4) / baubleCount;
       const y = 0.48 + t * 1.98;
       const r = (1 - t * 0.82) * 0.77;
       const angle = i * 2.39996;
@@ -63,9 +66,10 @@ export default function ChristmasTree({
       });
     }
 
-    // 10 Golden 3D Star Ornaments tucked across the pine branches (inspired by noel.jpe)
-    for (let i = 0; i < 10; i++) {
-      const t = (i + 0.6) / 11;
+    // Golden 3D Star Ornaments
+    const starCount = isMobileDevice ? 6 : 10;
+    for (let i = 0; i < starCount; i++) {
+      const t = (i + 0.6) / (starCount + 1);
       const y = 0.65 + t * 1.65;
       const r = (1 - t * 0.78) * 0.74;
       const angle = i * 1.85 + 0.4;
@@ -75,10 +79,10 @@ export default function ChristmasTree({
       });
     }
 
-    // Golden Beaded Garland Drapes (4 swooping catenary rings around the tree — inspired by noel.jpe)
+    // Golden Beaded Garland Drapes (lighter bead density on mobile)
     [0.72, 1.16, 1.6, 2.0].forEach((ringY, rIdx) => {
       const baseR = 0.74 - rIdx * 0.145;
-      const beadCount = 46 - rIdx * 6;
+      const beadCount = isMobileDevice ? 22 - rIdx * 3 : 46 - rIdx * 6;
       for (let b = 0; b < beadCount; b++) {
         const ang = (b / beadCount) * Math.PI * 2;
         const swoop = Math.sin(ang * 5) * 0.075;
@@ -96,7 +100,7 @@ export default function ChristmasTree({
       starOrnaments: stars,
       beadGarlands: beads,
     };
-  }, []);
+  }, [isMobileDevice]);
 
   // Bespoke Patterned Gift Boxes arranged in a circle around the Christmas Tree axis
   const giftConfigs = useMemo(() => {
@@ -439,13 +443,22 @@ export default function ChristmasTree({
       </group>
 
       {treeLightsOn && (
-        <pointLight
-          position={[0, 1.38, 0.4]}
-          color="#FFC966"
-          intensity={1.25}
-          distance={4.6}
-          decay={2}
-        />
+        <>
+          <pointLight
+            position={[0, 1.38, 0.4]}
+            color="#FFC252"
+            intensity={1.45}
+            distance={5.2}
+            decay={1.8}
+          />
+          <pointLight
+            position={[0, 0.48, 0.55]}
+            color="#FFB042"
+            intensity={1.35}
+            distance={4.8}
+            decay={1.65}
+          />
+        </>
       )}
 
       {/* Christmas Ornaments / Baubles */}

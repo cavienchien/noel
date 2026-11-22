@@ -61,19 +61,19 @@ export default function DiningTable({
             <mesh>
               <sphereGeometry args={[0.075, 18, 18]} />
               <meshStandardMaterial
-                color="#FFF9EB"
-                emissive="#FFE19C"
-                emissiveIntensity={1.25}
-                roughness={0.2}
+                color="#FFF3D6"
+                emissive="#FFD27D"
+                emissiveIntensity={0.6}
+                roughness={0.25}
               />
             </mesh>
           </group>
         ))}
         <pointLight
           position={[0, -0.2, 0]}
-          color="#FFE8B5"
-          intensity={0.95}
-          distance={5.5}
+          color="#FFD28A"
+          intensity={0.22}
+          distance={3.6}
           decay={2}
         />
       </group>
@@ -134,13 +134,13 @@ export default function DiningTable({
           position={[0.1, 0.025, 0]}
         >
           <mesh position={[0, 0.11, 0]} castShadow>
-            <cylinderGeometry args={[0.068, 0.082, 0.22, 20]} />
-            <meshPhysicalMaterial
+            <cylinderGeometry args={[0.068, 0.082, 0.22, 18]} />
+            <meshStandardMaterial
               color="#E5ECE9"
               transparent
               opacity={0.55}
-              roughness={0.12}
-              transmission={0.65}
+              roughness={0.14}
+              metalness={0.15}
             />
           </mesh>
           {[0, 1.2, 2.4, 3.6, 4.8].map((ang, i) => (
@@ -199,10 +199,10 @@ export default function DiningTable({
         {candlesOn && (
           <pointLight
             position={[-0.08, 0.24, 0]}
-            color="#FFC25E"
-            intensity={0.55}
-            distance={2.8}
-            decay={2}
+            color="#FFA938"
+            intensity={2.2}
+            distance={6.5}
+            decay={1.55}
           />
         )}
       </group>

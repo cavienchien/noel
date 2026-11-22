@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useCallback, useRef } from 'react';
+import React, { Suspense, useState, useCallback, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { Environment, Lightformer, ContactShadows } from '@react-three/drei';
@@ -26,6 +26,7 @@ import RotatePrompt from './components/UI/RotatePrompt';
 import { useExploration } from './hooks/useExploration';
 import { useInteraction } from './hooks/useInteraction';
 import { soundEngine } from './assets/sounds/soundEngine';
+import { detectMobileOrTablet } from './utils/devicePerformance';
 
 class SceneErrorBoundary extends React.Component {
   constructor(props) {
@@ -60,12 +61,40 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.65);
   const [currentProximityZone, setCurrentProximityZone] = useState(null);
-  const touchMoveRef = useRef({
-    forward: false,
-    backward: false,
-    left: false,
-    right: false,
-  });
+  const [showTouchHint, setShowTouchHint] = useState(true);
+  const [isMobileDevice] = useState(() => detectMobileOrTablet());
+  const touchMoveRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (exploration.mode === 'FREE_EXPLORE') {
+      setShowTouchHint(true);
+      let isDown = false;
+      const hideOnRotate = () => setShowTouchHint(false);
+      const onPointerDown = () => {
+        isDown = true;
+      };
+      const onPointerMove = () => {
+        if (isDown) setShowTouchHint(false);
+      };
+      const onPointerUp = () => {
+        isDown = false;
+      };
+
+      window.addEventListener('touchmove', hideOnRotate, { passive: true });
+      window.addEventListener('pointerdown', onPointerDown, { passive: true });
+      window.addEventListener('pointermove', onPointerMove, { passive: true });
+      window.addEventListener('pointerup', onPointerUp, { passive: true });
+      const timer = setTimeout(hideOnRotate, 3000);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('touchmove', hideOnRotate);
+        window.removeEventListener('pointerdown', onPointerDown);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+      };
+    }
+  }, [exploration.mode]);
 
   const handleToggleMute = useCallback(() => {
     soundEngine.init();
@@ -201,54 +230,59 @@ export default function App() {
             }
           >
             <Canvas
-              shadows="soft"
-              dpr={[1, 2]}
+              shadows={isMobileDevice ? true : 'soft'}
+              dpr={isMobileDevice ? [1, 1.25] : [1, 2]}
               gl={{
-                antialias: true,
+                antialias: !isMobileDevice,
+                powerPreference: 'high-performance',
                 toneMapping: THREE.ACESFilmicToneMapping,
-                toneMappingExposure: 1.06,
+                toneMappingExposure: 0.88,
               }}
               camera={{ position: [0.4, 1.56, 5.15], fov: 55, near: 0.1, far: 45 }}
             >
-              <color attach="background" args={['#1F1C19']} />
-              <fog attach="fog" args={['#F3ECE1', 12, 28]} />
+              <color attach="background" args={['#14110E']} />
+              <fog attach="fog" args={['#261E18', 11, 26]} />
 
-              {/* Offline Procedural Studio Environment Reflections for Brass, Glass & Ornaments */}
-              <Environment resolution={256} frames={1}>
+              {/* Offline Procedural Studio Environment Reflections (128px on mobile for zero lag) */}
+              <Environment resolution={isMobileDevice ? 128 : 256} frames={1}>
                 <Lightformer
                   form="rect"
-                  intensity={2.2}
-                  color="#FFF4DF"
+                  intensity={0.55}
+                  color="#FFD8A8"
                   position={[0, 6, 0]}
                   rotation={[Math.PI / 2, 0, 0]}
                   scale={[10, 8, 1]}
                 />
                 <Lightformer
                   form="rect"
-                  intensity={1.8}
-                  color="#FFE2B0"
+                  intensity={0.48}
+                  color="#FFC078"
                   position={[-4, 2, -4]}
                   rotation={[0, Math.PI / 4, 0]}
                   scale={[5, 4, 1]}
                 />
                 <Lightformer
                   form="rect"
-                  intensity={1.6}
-                  color="#DDEBF5"
+                  intensity={0.35}
+                  color="#7A94B0"
                   position={[4, 3, -4]}
                   rotation={[0, -Math.PI / 4, 0]}
                   scale={[5, 4, 1]}
                 />
               </Environment>
 
-              <ContactShadows
-                position={[0, 0.004, 0.2]}
-                opacity={0.32}
-                scale={11}
-                blur={2.2}
-                far={2.6}
-                color="#4A3A2B"
-              />
+              {/* Bake ContactShadows once (frames={1}) on desktop and disable on mobile GPUs for smooth 60 FPS */}
+              {!isMobileDevice && (
+                <ContactShadows
+                  position={[0, 0.004, 0.2]}
+                  frames={1}
+                  opacity={0.32}
+                  scale={11}
+                  blur={2.2}
+                  far={2.6}
+                  color="#4A3A2B"
+                />
+              )}
 
               <FirstPersonCamera
                 mode={exploration.mode}
@@ -271,6 +305,7 @@ export default function App() {
                 currentGuidedStop={exploration.currentGuidedStop}
                 interaction={interaction}
                 onTriggerInitialDoor={exploration.triggerInitialDoorOpen}
+                isMobileDevice={isMobileDevice}
               />
             </Canvas>
           </Suspense>
@@ -336,11 +371,13 @@ export default function App() {
                 <kbd>ESC</kbd> Tạm dừng
               </span>
             </div>
-            <div className="controls-legend-pill touch-only-legend">
-              <span>Vuốt 1 ngón: Xoay 360°</span>
-              <span>·</span>
-              <span>Chạm đồ vật: Tương tác</span>
-            </div>
+            {showTouchHint && (
+              <div className="controls-legend-pill touch-only-legend">
+                <span>Vuốt 1 ngón: Xoay 360°</span>
+                <span>·</span>
+                <span>Chạm đồ vật: Tương tác</span>
+              </div>
+            )}
 
             <div className="quick-interact-dock" role="group" aria-label="Tương tác nhanh trong phòng">
               <button

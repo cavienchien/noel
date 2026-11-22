@@ -145,10 +145,10 @@ export default function CoffeeTable({
               </mesh>
               <pointLight
                 position={[0, 0.14, 0]}
-                color="#FFC25E"
-                intensity={0.45}
-                distance={2.2}
-                decay={2}
+                color="#FFA938"
+                intensity={2.1}
+                distance={6.2}
+                decay={1.55}
               />
             </>
           )}

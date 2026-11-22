@@ -260,15 +260,9 @@ export default function FreeCamera({
     );
 
     const tm = touchMoveRef?.current;
-    const wantForward = keys.current.w || Boolean(tm?.forward);
-    const wantBackward = keys.current.s || Boolean(tm?.backward);
-    const wantLeft = keys.current.a || Boolean(tm?.left);
-    const wantRight = keys.current.d || Boolean(tm?.right);
-    const anyTouchWalk =
-      Boolean(tm?.forward) ||
-      Boolean(tm?.backward) ||
-      Boolean(tm?.left) ||
-      Boolean(tm?.right);
+    const joyX = tm?.x || 0;
+    const joyY = tm?.y || 0;
+    const anyTouchWalk = Math.abs(joyX) > 0.08 || Math.abs(joyY) > 0.08;
 
     if (anyTouchWalk) {
       if (interaction.isSittingOnSofa) {
@@ -307,7 +301,7 @@ export default function FreeCamera({
     // 3. Apply Smooth Look Rotation
     camera.quaternion.setFromEuler(euler.current);
 
-    // 4. First-Person WASD + Touch D-Pad Movement with Sliding Collision Detection
+    // 4. First-Person WASD + Analog Touch Joystick Movement with Sliding Collision Detection
     const moveSpeed = 2.65;
     const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(
       new THREE.Vector3(0, 1, 0),
@@ -319,14 +313,21 @@ export default function FreeCamera({
     );
 
     const moveVec = new THREE.Vector3();
-    if (wantForward) moveVec.add(forward);
-    if (wantBackward) moveVec.sub(forward);
-    if (wantRight) moveVec.add(right);
-    if (wantLeft) moveVec.sub(right);
+    if (keys.current.w) moveVec.add(forward);
+    if (keys.current.s) moveVec.sub(forward);
+    if (keys.current.d) moveVec.add(right);
+    if (keys.current.a) moveVec.sub(right);
 
-    const isMoving = moveVec.lengthSq() > 0.001;
+    if (anyTouchWalk) {
+      moveVec.addScaledVector(forward, joyY);
+      moveVec.addScaledVector(right, joyX);
+    }
+
+    const lenSq = moveVec.lengthSq();
+    const isMoving = lenSq > 0.002;
     if (isMoving) {
-      moveVec.normalize().multiplyScalar(moveSpeed * delta);
+      const speedScale = lenSq > 1 ? 1 : Math.sqrt(lenSq);
+      moveVec.normalize().multiplyScalar(moveSpeed * speedScale * delta);
 
       const curX = camera.position.x;
       const curZ = camera.position.z;
