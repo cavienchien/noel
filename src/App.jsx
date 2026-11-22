@@ -13,8 +13,6 @@ import {
   DoorOpen,
   User,
   Eye,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import Room from './components/Scene/Room';
 import Chibi from './components/Character/Chibi';
@@ -416,24 +414,6 @@ export default function App() {
               >
                 <Sparkles size={15} aria-hidden="true" />
                 <span className="mini-ctrl-text">Đèn cây</span>
-              </button>
-              <button
-                type="button"
-                className={`mini-ctrl-btn ${!interaction.windowEveningMode ? 'active' : ''}`}
-                onClick={() =>
-                  interaction.setWindowEveningMode((prev) => !prev)
-                }
-                aria-label="Đổi ánh sáng ban ngày hoặc buổi tối"
-                title={interaction.windowEveningMode ? 'Chế độ Tối' : 'Chế độ Sáng'}
-              >
-                {interaction.windowEveningMode ? (
-                  <Moon size={15} aria-hidden="true" />
-                ) : (
-                  <Sun size={15} aria-hidden="true" />
-                )}
-                <span className="mini-ctrl-text">
-                  {interaction.windowEveningMode ? 'Tối' : 'Sáng'}
-                </span>
               </button>
               <span className="mini-ctrl-sep" aria-hidden="true" />
               <button
