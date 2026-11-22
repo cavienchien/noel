@@ -81,8 +81,8 @@ export default function PauseMenu({
               <span>Di Chuyển Trong Phòng</span>
             </div>
             <div>
-              <kbd>Chuột</kbd>
-              <span>Xoay Góc Nhìn 360°</span>
+              <kbd>Chuột / Cuộn</kbd>
+              <span>Xoay 360° &amp; Zoom Chi Tiết</span>
             </div>
             <div>
               <kbd>Chuột Trái</kbd>
@@ -103,12 +103,12 @@ export default function PauseMenu({
               <span>Xoay Góc Nhìn 360°</span>
             </div>
             <div>
-              <kbd>Chạm Đồ Vật</kbd>
-              <span>Bật Lửa, Đèn, Mở Quà</span>
+              <kbd>Chụm / Mở 2 Ngón</kbd>
+              <span>Zoom Phóng To Chi Tiết</span>
             </div>
             <div>
-              <kbd>Nút Tạm Dừng</kbd>
-              <span>Mở Menu &amp; Âm Lượng</span>
+              <kbd>Chạm Đồ Vật</kbd>
+              <span>Bật Lửa, Đèn, Mở Quà</span>
             </div>
           </div>
         </div>

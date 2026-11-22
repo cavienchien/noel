@@ -175,10 +175,14 @@ export default function FreeCamera({
       }
     };
 
-    // Smartphone & iPad Smooth 1-Finger 360° Touch Swipe Rotation
+    // Smartphone & iPad Smooth 1-Finger 360° Touch Swipe Rotation (pauses during 2-finger pinch zoom)
     const handleTouchStart = (e) => {
       if (isPaused) return;
       if (e.target !== gl.domElement) return;
+      if (e.touches.length >= 2) {
+        activeTouchId.current = null;
+        return;
+      }
       if (activeTouchId.current === null && e.changedTouches.length > 0) {
         const touch = e.changedTouches[0];
         activeTouchId.current = touch.identifier;
@@ -188,6 +192,10 @@ export default function FreeCamera({
 
     const handleTouchMove = (e) => {
       if (isPaused || activeTouchId.current === null) return;
+      if (e.touches.length >= 2) {
+        activeTouchId.current = null;
+        return;
+      }
       for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i];
         if (touch.identifier === activeTouchId.current) {

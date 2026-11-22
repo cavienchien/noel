@@ -365,6 +365,9 @@ export default function App() {
                 <kbd>Chuột</kbd> Xoay góc nhìn
               </span>
               <span>
+                <kbd>Cuộn chuột</kbd> Zoom
+              </span>
+              <span>
                 <kbd>Chuột trái</kbd> Tương tác
               </span>
               <span>
@@ -375,7 +378,7 @@ export default function App() {
               <div className="controls-legend-pill touch-only-legend">
                 <span>Vuốt 1 ngón: Xoay 360°</span>
                 <span>·</span>
-                <span>Chạm đồ vật: Tương tác</span>
+                <span>2 ngón: Zoom</span>
               </div>
             )}
 

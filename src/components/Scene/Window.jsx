@@ -1,5 +1,7 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
+import { soundEngine } from '../../assets/sounds/soundEngine';
 
 export default function Window({
   hoveredObject,
@@ -8,31 +10,72 @@ export default function Window({
   onInteract,
   isMobileDevice = false,
 }) {
-  const snowRef = useRef();
+  const snowInstancedRef = useRef();
+  const leftCurtainRef = useRef();
+  const rightCurtainRef = useRef();
+  const [curtainsClosed, setCurtainsClosed] = useState(false);
+
   const isHovered = hoveredObject?.id === 'window';
+  const isHoveredCurtains = hoveredObject?.id === 'curtains';
 
-  // Generate 3D falling snow particles outside the window (lighter count on mobile)
-  const snowPositions = useMemo(() => {
-    const count = isMobileDevice ? 85 : 220;
-    const arr = new Float32Array(count * 3);
+  // Continuous chill 3D snowflakes outside the window
+  const snowFlakes = useMemo(() => {
+    const count = isMobileDevice ? 110 : 220;
+    const list = [];
     for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 4.4;
-      arr[i * 3 + 1] = Math.random() * 3.4 - 1.2;
-      arr[i * 3 + 2] = -0.35 - Math.random() * 2.4;
+      list.push({
+        x: (Math.random() - 0.5) * 3.2,
+        y: Math.random() * 2.5 - 1.0,
+        z: -0.05 - Math.random() * 1.65,
+        speedY: 0.18 + Math.random() * 0.22,
+        swayAmp: 0.08 + Math.random() * 0.14,
+        swayFreq: 0.7 + Math.random() * 0.9,
+        phase: Math.random() * Math.PI * 2,
+        size: 0.011 + Math.random() * 0.015,
+      });
     }
-    return arr;
-  }, []);
+    return list;
+  }, [isMobileDevice]);
 
-  useFrame((_, delta) => {
-    if (snowRef.current) {
-      const posAttr = snowRef.current.geometry.attributes.position;
-      for (let i = 0; i < posAttr.count; i++) {
-        let y = posAttr.getY(i) - delta * 0.42;
-        let x = posAttr.getX(i) + Math.sin(y * 3 + i) * delta * 0.08;
-        if (y < -1.2) y = 1.9;
-        posAttr.setXY(i, x, y);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 0.05);
+    const t = state.clock.elapsedTime;
+
+    // Update continuous chill snowfall
+    if (snowInstancedRef.current) {
+      for (let i = 0; i < snowFlakes.length; i++) {
+        const f = snowFlakes[i];
+        f.y -= f.speedY * dt;
+        if (f.y < -1.05) {
+          f.y = 1.45;
+          f.x = (Math.random() - 0.5) * 3.2;
+        }
+        const curX = f.x + Math.sin(t * f.swayFreq + f.phase) * f.swayAmp;
+        dummy.position.set(curX, f.y, f.z);
+        dummy.scale.setScalar(f.size);
+        dummy.updateMatrix();
+        snowInstancedRef.current.setMatrixAt(i, dummy.matrix);
       }
-      posAttr.needsUpdate = true;
+      snowInstancedRef.current.instanceMatrix.needsUpdate = true;
+    }
+
+    // Smoothly animate left & right curtains opening / closing
+    const targetScaleX = curtainsClosed ? 1.0 : 0.2;
+    if (leftCurtainRef.current) {
+      leftCurtainRef.current.scale.x = THREE.MathUtils.lerp(
+        leftCurtainRef.current.scale.x,
+        targetScaleX,
+        Math.min(1, dt * 5.5)
+      );
+    }
+    if (rightCurtainRef.current) {
+      rightCurtainRef.current.scale.x = THREE.MathUtils.lerp(
+        rightCurtainRef.current.scale.x,
+        targetScaleX,
+        Math.min(1, dt * 5.5)
+      );
     }
   });
 
@@ -45,12 +88,31 @@ export default function Window({
     position: [2.45, 2.05, -3.32],
   };
 
+  const curtainInteractData = {
+    interactable: true,
+    id: 'curtains',
+    name: 'Rèm Cửa Sổ',
+    actionLabel: curtainsClosed ? 'Mở Rèm Cửa' : 'Đóng Rèm Cửa',
+    area: 'Khu vực Bàn ăn',
+    position: [2.45, 2.05, -3.2],
+  };
+
   const handleClick = (e) => {
     e.stopPropagation();
     if (mode === 'FREE_EXPLORE') {
       onInteract('window');
     }
   };
+
+  const handleCurtainClick = (e) => {
+    e.stopPropagation();
+    soundEngine.init();
+    soundEngine.playInteractSound();
+    setCurtainsClosed((prev) => !prev);
+  };
+
+  const curtainColor = isHoveredCurtains ? '#EAE0D0' : '#DFD2C0';
+  const pleatSteps = [0.07, 0.2, 0.34, 0.48, 0.62, 0.76, 0.9, 1.04, 1.18, 1.32];
 
   return (
     <group position={[2.45, 2.05, -3.35]}>
@@ -67,21 +129,86 @@ export default function Window({
         </mesh>
       ))}
 
-      {/* Left & Right Pleated Warm Beige Linen Drapes */}
-      {[-1.28, 1.28].map((sideX, sIdx) => (
-        <group key={sIdx} position={[sideX, -0.52, 0.15]}>
-          {[-0.09, -0.03, 0.03, 0.09].map((pleatX, pIdx) => (
-            <mesh key={pIdx} position={[pleatX, 0, (pIdx % 2) * 0.02]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.038, 0.046, 2.95, 12]} />
-              <meshStandardMaterial
-                color="#DFD2C0"
-                roughness={0.88}
-                metalness={0.02}
-              />
-            </mesh>
-          ))}
-        </group>
-      ))}
+      {/* Left & Right Interactive Pleated Warm Beige Linen Drapes (Touch/Click to Open & Close) */}
+      <group
+        ref={leftCurtainRef}
+        position={[-1.38, -0.52, 0.16]}
+        scale={[0.2, 1, 1]}
+        userData={curtainInteractData}
+        onClick={handleCurtainClick}
+      >
+        <mesh
+          position={[0.69, 0, -0.008]}
+          castShadow
+          receiveShadow
+          userData={curtainInteractData}
+          onClick={handleCurtainClick}
+        >
+          <boxGeometry args={[1.36, 2.94, 0.018]} />
+          <meshStandardMaterial
+            color={curtainColor}
+            roughness={0.9}
+            metalness={0.02}
+          />
+        </mesh>
+        {pleatSteps.map((px, pIdx) => (
+          <mesh
+            key={pIdx}
+            position={[px, 0, (pIdx % 2) * 0.018]}
+            castShadow
+            receiveShadow
+            userData={curtainInteractData}
+            onClick={handleCurtainClick}
+          >
+            <cylinderGeometry args={[0.036, 0.045, 2.95, 12]} />
+            <meshStandardMaterial
+              color={curtainColor}
+              roughness={0.88}
+              metalness={0.02}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      <group
+        ref={rightCurtainRef}
+        position={[1.38, -0.52, 0.16]}
+        scale={[0.2, 1, 1]}
+        userData={curtainInteractData}
+        onClick={handleCurtainClick}
+      >
+        <mesh
+          position={[-0.69, 0, -0.008]}
+          castShadow
+          receiveShadow
+          userData={curtainInteractData}
+          onClick={handleCurtainClick}
+        >
+          <boxGeometry args={[1.36, 2.94, 0.018]} />
+          <meshStandardMaterial
+            color={curtainColor}
+            roughness={0.9}
+            metalness={0.02}
+          />
+        </mesh>
+        {pleatSteps.map((px, pIdx) => (
+          <mesh
+            key={pIdx}
+            position={[-px, 0, (pIdx % 2) * 0.018]}
+            castShadow
+            receiveShadow
+            userData={curtainInteractData}
+            onClick={handleCurtainClick}
+          >
+            <cylinderGeometry args={[0.036, 0.045, 2.95, 12]} />
+            <meshStandardMaterial
+              color={curtainColor}
+              roughness={0.88}
+              metalness={0.02}
+            />
+          </mesh>
+        ))}
+      </group>
 
       {/* ================= OUTER MOULDED WHITE WINDOW FRAME & SILL ================= */}
       <mesh
@@ -153,15 +280,16 @@ export default function Window({
             <meshStandardMaterial color="#F6F3EC" roughness={0.38} />
           </mesh>
 
-          {/* Soft Blue-Tinted Window Glass Pane (fast standard transparent glass without extra transmission render pass) */}
+          {/* Soft Blue-Tinted Window Glass Pane (depthWrite=false so continuous falling snow behind glass is always visible) */}
           <mesh userData={interactData} onClick={handleClick}>
             <planeGeometry args={[1.02, 1.28]} />
             <meshStandardMaterial
               color={windowEveningMode ? '#8CAEC4' : '#D5E8F2'}
               transparent
-              opacity={0.22}
+              opacity={0.14}
+              depthWrite={false}
               roughness={0.08}
-              metalness={0.18}
+              metalness={0.12}
             />
           </mesh>
         </group>
@@ -217,23 +345,20 @@ export default function Window({
           </group>
         ))}
 
-        {/* Falling 3D Snowflakes Outside Window */}
-        <points ref={snowRef}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={snowPositions.length / 3}
-              array={snowPositions}
-              itemSize={3}
-            />
-          </bufferGeometry>
-          <pointsMaterial
+        {/* Continuous Chill 3D Falling Snowflakes Outside Window */}
+        <instancedMesh
+          ref={snowInstancedRef}
+          args={[null, null, snowFlakes.length]}
+          frustumCulled={false}
+        >
+          <sphereGeometry args={[1, 8, 8]} />
+          <meshBasicMaterial
             color="#FFFFFF"
-            size={0.042}
             transparent
-            opacity={0.88}
+            opacity={0.92}
+            depthWrite={false}
           />
-        </points>
+        </instancedMesh>
       </group>
 
       {/* Soft Window Moonlight / Daylight Streaming into Room */}

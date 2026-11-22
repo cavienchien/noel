@@ -3,12 +3,106 @@ import {
   getPlasterWallTexture,
   getShiplapTexture,
   getRusticBeamTexture,
+  getOakWoodTexture,
 } from '../../assets/textures/proceduralTextures';
+
+function WallPhotoFrame({
+  position,
+  rotation,
+  width = 0.76,
+  height = 0.94,
+  oakTex,
+  hasPictureLight = false,
+}) {
+  const frameDepth = 0.042;
+  const border = 0.055;
+  const matWidth = width - border * 2;
+  const matHeight = height - border * 2;
+  const photoWidth = matWidth - 0.11;
+  const photoHeight = matHeight - 0.11;
+
+  return (
+    <group position={position} rotation={rotation}>
+      {/* Warm Oak Outer Frame Box */}
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[width, height, frameDepth]} />
+        <meshStandardMaterial
+          map={oakTex}
+          color="#C9A26E"
+          roughness={0.38}
+          metalness={0.18}
+        />
+      </mesh>
+
+      {/* Thin Brushed Brass Inner Fillet Trim */}
+      <mesh position={[0, 0, frameDepth * 0.5 + 0.001]}>
+        <planeGeometry args={[matWidth + 0.018, matHeight + 0.018]} />
+        <meshStandardMaterial
+          color="#D4AF6A"
+          metalness={0.82}
+          roughness={0.22}
+        />
+      </mesh>
+
+      {/* Cream Passe-Partout Mat Board */}
+      <mesh position={[0, 0, frameDepth * 0.5 + 0.002]}>
+        <planeGeometry args={[matWidth, matHeight]} />
+        <meshStandardMaterial color="#F9F6F0" roughness={0.62} />
+      </mesh>
+
+      {/* Recessed Inner Gold Bevel Line around Photo Slot */}
+      <mesh position={[0, 0, frameDepth * 0.5 + 0.003]}>
+        <planeGeometry args={[photoWidth + 0.012, photoHeight + 0.012]} />
+        <meshStandardMaterial
+          color="#C8A25A"
+          metalness={0.65}
+          roughness={0.3}
+        />
+      </mesh>
+
+      {/* Placeholder Photo Canvas (Ready for user images later) */}
+      <mesh position={[0, 0, frameDepth * 0.5 + 0.004]}>
+        <planeGeometry args={[photoWidth, photoHeight]} />
+        <meshStandardMaterial color="#E6D8C5" roughness={0.55} />
+      </mesh>
+
+      {/* Optional Brushed Brass Gallery Picture Light Above Frame */}
+      {hasPictureLight && (
+        <group position={[0, height * 0.5 + 0.09, 0.04]}>
+          <mesh position={[0, 0.015, -0.02]}>
+            <boxGeometry args={[0.14, 0.04, 0.035]} />
+            <meshStandardMaterial
+              color="#D4AF6A"
+              metalness={0.88}
+              roughness={0.18}
+            />
+          </mesh>
+          <mesh position={[0, 0, 0.055]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.015, 0.015, width * 0.52, 14]} />
+            <meshStandardMaterial
+              color="#D4AF6A"
+              metalness={0.88}
+              roughness={0.18}
+            />
+          </mesh>
+          <pointLight
+            position={[0, -0.06, 0.12]}
+            color="#FFC870"
+            intensity={0.55}
+            distance={2.2}
+            decay={2}
+          />
+        </group>
+      )}
+    </group>
+  );
+}
 
 export default function Walls() {
   const plasterTex = useMemo(() => getPlasterWallTexture(), []);
   const shiplapTex = useMemo(() => getShiplapTexture(), []);
   const beamTex = useMemo(() => getRusticBeamTexture(), []);
+  const oakTex = useMemo(() => getOakWoodTexture(), []);
 
   const wallColor = '#F3ECE1';
   const trimColor = '#F9F6F0';
@@ -207,6 +301,30 @@ export default function Walls() {
         </mesh>
       </group>
 
+      {/* Gallery Photo Frames on West Wall (Left Wall) */}
+      <WallPhotoFrame
+        position={[-4.69, 1.94, 0.65]}
+        rotation={[0, Math.PI / 2, 0]}
+        width={0.72}
+        height={0.92}
+        oakTex={oakTex}
+      />
+      <WallPhotoFrame
+        position={[-4.69, 1.98, -0.35]}
+        rotation={[0, Math.PI / 2, 0]}
+        width={1.06}
+        height={0.82}
+        oakTex={oakTex}
+        hasPictureLight
+      />
+      <WallPhotoFrame
+        position={[-4.69, 1.94, -1.35]}
+        rotation={[0, Math.PI / 2, 0]}
+        width={0.72}
+        height={0.92}
+        oakTex={oakTex}
+      />
+
       {/* ================= EAST WALL (Right Wall: X = +4.8) ================= */}
       <mesh position={[4.8, 1.8, 0.1]} receiveShadow castShadow>
         <boxGeometry args={[0.18, 3.6, 7.2]} />
@@ -220,6 +338,30 @@ export default function Walls() {
         <boxGeometry args={[0.025, 0.045, 7.0]} />
         <meshStandardMaterial color={trimColor} roughness={0.45} />
       </mesh>
+
+      {/* Gallery Photo Frames on East Wall (Right Wall, behind Dining Table) */}
+      <WallPhotoFrame
+        position={[4.69, 2.0, -0.85]}
+        rotation={[0, -Math.PI / 2, 0]}
+        width={0.72}
+        height={0.92}
+        oakTex={oakTex}
+      />
+      <WallPhotoFrame
+        position={[4.69, 2.04, 0.15]}
+        rotation={[0, -Math.PI / 2, 0]}
+        width={1.06}
+        height={0.82}
+        oakTex={oakTex}
+        hasPictureLight
+      />
+      <WallPhotoFrame
+        position={[4.69, 2.0, 1.15]}
+        rotation={[0, -Math.PI / 2, 0]}
+        width={0.72}
+        height={0.92}
+        oakTex={oakTex}
+      />
 
       {/* ================= SOUTH WALL (Front Entrance Wall: Z = +3.6) ================= */}
       <mesh position={[-2.49, 1.8, 3.6]} receiveShadow castShadow>
@@ -242,6 +384,54 @@ export default function Walls() {
         <boxGeometry args={[3.8, 0.14, 0.03]} />
         <meshStandardMaterial color={trimColor} roughness={0.45} />
       </mesh>
+
+      {/* Gallery Photo Frames on South Wall - Left Side of Door (in view) */}
+      <WallPhotoFrame
+        position={[3.75, 1.94, 3.47]}
+        rotation={[0, Math.PI, 0]}
+        width={0.68}
+        height={0.88}
+        oakTex={oakTex}
+      />
+      <WallPhotoFrame
+        position={[2.85, 1.98, 3.47]}
+        rotation={[0, Math.PI, 0]}
+        width={0.96}
+        height={0.78}
+        oakTex={oakTex}
+        hasPictureLight
+      />
+      <WallPhotoFrame
+        position={[1.95, 1.94, 3.47]}
+        rotation={[0, Math.PI, 0]}
+        width={0.68}
+        height={0.88}
+        oakTex={oakTex}
+      />
+
+      {/* Gallery Photo Frames on South Wall - Right Side of Door (above Sofa) */}
+      <WallPhotoFrame
+        position={[-0.55, 1.96, 3.47]}
+        rotation={[0, Math.PI, 0]}
+        width={0.64}
+        height={0.84}
+        oakTex={oakTex}
+      />
+      <WallPhotoFrame
+        position={[-1.35, 2.0, 3.47]}
+        rotation={[0, Math.PI, 0]}
+        width={0.88}
+        height={0.74}
+        oakTex={oakTex}
+        hasPictureLight
+      />
+      <WallPhotoFrame
+        position={[-2.15, 1.96, 3.47]}
+        rotation={[0, Math.PI, 0]}
+        width={0.64}
+        height={0.84}
+        oakTex={oakTex}
+      />
 
       {/* ================= EXTERIOR FOYER / ENTRANCE HALLWAY (Z = 3.6 to 6.6) ================= */}
       <mesh position={[-1.85, 1.8, 5.1]} receiveShadow>
