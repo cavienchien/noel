@@ -1,21 +1,28 @@
-// Web Audio API Procedural Sound & Music Engine for Christmas Home 3D
+import bgmUrl from './bgm.mp3';
+
+// Web Audio API Sound & Background Music Engine for Christmas Home 3D
 class SoundEngine {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
-    this.musicGain = null;
     this.sfxGain = null;
     this.fireNode = null;
     this.fireGain = null;
+    this.bgmAudio = null;
     this.isMuted = false;
     this.volume = 0.65;
     this.isMusicPlaying = false;
-    this.musicTimer = null;
-    this.noteIndex = 0;
     this.fireActive = true;
   }
 
   init() {
+    if (!this.bgmAudio && typeof Audio !== 'undefined') {
+      this.bgmAudio = new Audio(bgmUrl);
+      this.bgmAudio.loop = true;
+      this.bgmAudio.preload = 'auto';
+      this.bgmAudio.volume = this.isMuted ? 0 : this.volume;
+    }
+
     if (this.ctx) {
       if (this.ctx.state === 'suspended') {
         this.ctx.resume();
@@ -30,10 +37,6 @@ class SoundEngine {
     this.masterGain.gain.value = this.isMuted ? 0 : this.volume;
     this.masterGain.connect(this.ctx.destination);
 
-    this.musicGain = this.ctx.createGain();
-    this.musicGain.gain.value = 0.28;
-    this.musicGain.connect(this.masterGain);
-
     this.sfxGain = this.ctx.createGain();
     this.sfxGain.gain.value = 0.7;
     this.sfxGain.connect(this.masterGain);
@@ -43,6 +46,9 @@ class SoundEngine {
 
   setVolume(val) {
     this.volume = Math.max(0, Math.min(1, val));
+    if (this.bgmAudio) {
+      this.bgmAudio.volume = this.isMuted ? 0 : this.volume;
+    }
     if (this.masterGain && this.ctx) {
       const target = this.isMuted ? 0 : this.volume;
       this.masterGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.05);
@@ -51,6 +57,10 @@ class SoundEngine {
 
   toggleMute() {
     this.isMuted = !this.isMuted;
+    if (this.bgmAudio) {
+      this.bgmAudio.muted = this.isMuted;
+      this.bgmAudio.volume = this.isMuted ? 0 : this.volume;
+    }
     if (this.masterGain && this.ctx) {
       const target = this.isMuted ? 0 : this.volume;
       this.masterGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.05);
@@ -60,91 +70,13 @@ class SoundEngine {
 
   startMusic() {
     this.init();
-    if (!this.ctx || this.isMusicPlaying) return;
+    if (!this.bgmAudio) return;
+    this.bgmAudio.muted = this.isMuted;
+    this.bgmAudio.volume = this.isMuted ? 0 : this.volume;
+    if (this.bgmAudio.paused) {
+      this.bgmAudio.play().catch(() => {});
+    }
     this.isMusicPlaying = true;
-
-    // Gentle Christmas Celesta / Music Box Melody (Silent Night & Winter Chimes)
-    // Frequencies in Hz with duration multipliers
-    const melody = [
-      { f: 392.0, d: 1.5, bass: 130.81 }, // G4
-      { f: 440.0, d: 0.5, bass: null },   // A4
-      { f: 392.0, d: 1.0, bass: 196.0 },  // G4
-      { f: 329.63, d: 2.5, bass: 164.81 },// E4
-      { f: 392.0, d: 1.5, bass: 130.81 }, // G4
-      { f: 440.0, d: 0.5, bass: null },   // A4
-      { f: 392.0, d: 1.0, bass: 196.0 },  // G4
-      { f: 329.63, d: 2.5, bass: 164.81 },// E4
-      { f: 587.33, d: 2.0, bass: 146.83 },// D5
-      { f: 587.33, d: 1.0, bass: 196.0 }, // D5
-      { f: 493.88, d: 2.5, bass: 146.83 },// B4
-      { f: 523.25, d: 2.0, bass: 130.81 },// C5
-      { f: 523.25, d: 1.0, bass: 196.0 }, // C5
-      { f: 392.0, d: 2.5, bass: 130.81 }, // G4
-      { f: 440.0, d: 2.0, bass: 174.61 }, // A4
-      { f: 440.0, d: 1.0, bass: 220.0 },  // A4
-      { f: 523.25, d: 1.5, bass: 174.61 },// C5
-      { f: 493.88, d: 0.5, bass: null },  // B4
-      { f: 440.0, d: 1.0, bass: 130.81 }, // A4
-      { f: 392.0, d: 1.5, bass: 130.81 }, // G4
-      { f: 440.0, d: 0.5, bass: null },   // A4
-      { f: 392.0, d: 1.0, bass: 196.0 },  // G4
-      { f: 329.63, d: 2.5, bass: 164.81 },// E4
-    ];
-
-    const playNextNote = () => {
-      if (!this.isMusicPlaying || !this.ctx) return;
-      const item = melody[this.noteIndex % melody.length];
-      this.noteIndex++;
-
-      const now = this.ctx.currentTime;
-      // Celesta bell tone
-      const osc = this.ctx.createOscillator();
-      const subOsc = this.ctx.createOscillator();
-      const noteGain = this.ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(item.f, now);
-
-      subOsc.type = 'triangle';
-      subOsc.frequency.setValueAtTime(item.f * 2, now);
-
-      const subGain = this.ctx.createGain();
-      subGain.gain.setValueAtTime(0.08, now);
-      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-
-      noteGain.gain.setValueAtTime(0.001, now);
-      noteGain.gain.linearRampToValueAtTime(0.22, now + 0.04);
-      noteGain.gain.exponentialRampToValueAtTime(0.0008, now + item.d * 0.95);
-
-      osc.connect(noteGain);
-      subOsc.connect(subGain);
-      subGain.connect(noteGain);
-      noteGain.connect(this.musicGain);
-
-      osc.start(now);
-      subOsc.start(now);
-      osc.stop(now + item.d);
-      subOsc.stop(now + item.d);
-
-      // Warm harmonic bass pad
-      if (item.bass) {
-        const bassOsc = this.ctx.createOscillator();
-        const bassGain = this.ctx.createGain();
-        bassOsc.type = 'sine';
-        bassOsc.frequency.setValueAtTime(item.bass, now);
-        bassGain.gain.setValueAtTime(0.001, now);
-        bassGain.gain.linearRampToValueAtTime(0.12, now + 0.15);
-        bassGain.gain.exponentialRampToValueAtTime(0.001, now + item.d * 1.4);
-        bassOsc.connect(bassGain);
-        bassGain.connect(this.musicGain);
-        bassOsc.start(now);
-        bassOsc.stop(now + item.d * 1.45);
-      }
-
-      this.musicTimer = setTimeout(playNextNote, item.d * 620);
-    };
-
-    playNextNote();
   }
 
   setupFireCrackle() {

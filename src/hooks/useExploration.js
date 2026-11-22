@@ -75,9 +75,25 @@ export function useExploration() {
     });
   }, []);
 
-  // Step 1 -> Step 2: Start Experience (go outside the door)
+  // Vào thẳng trải nghiệm: mở cửa mượt -> bước vào phòng -> tự do khám phá ngay (không rườm rà)
+  const enterDirectly = useCallback(() => {
+    soundEngine.init();
+    soundEngine.playDoorSound(true);
+    soundEngine.startMusic();
+    setIsPaused(false);
+    setMode('OPENING_DOOR');
+    setTimeout(() => {
+      setMode('ENTERING_ROOM');
+    }, 900);
+    setTimeout(() => {
+      setMode('FREE_EXPLORE');
+    }, 3100);
+  }, []);
+
+  // Bước 1 -> Bước 2: Chế độ xem giới thiệu nhanh từ trước cửa
   const startExperience = useCallback(() => {
     soundEngine.init();
+    soundEngine.startMusic();
     soundEngine.playInteractSound();
     setMode('OUTSIDE_DOOR');
     setIsPaused(false);
@@ -160,6 +176,7 @@ export function useExploration() {
     setCompletionDismissed,
     isPaused,
     setIsPaused,
+    enterDirectly,
     startExperience,
     triggerInitialDoorOpen,
     beginGuidedTour,

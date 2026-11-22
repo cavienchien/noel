@@ -374,8 +374,8 @@ export default function App() {
         {/* Start Screen Overlay */}
         <StartScreen
           mode={exploration.mode}
-          onStartExperience={exploration.startExperience}
-          onSkipToFreeExplore={handleSkipToFreeExplore}
+          onEnterDirectly={exploration.enterDirectly}
+          onStartGuided={exploration.startExperience}
         />
 
         {/* Phase 1: Guided Exploration Overlays */}
@@ -414,37 +414,9 @@ export default function App() {
           touchMoveRef={touchMoveRef}
         />
 
-        {/* Thanh hướng dẫn điều khiển & nút tương tác nhanh */}
+        {/* Thanh tác vụ tương tác nhanh tối giản (không che không gian 3D) */}
         {exploration.mode === 'FREE_EXPLORE' && (
-          <div className="free-explore-bottom-bar">
-            <div className="controls-legend-pill desktop-only-legend">
-              <span>
-                <kbd>WASD</kbd> Di chuyển
-              </span>
-              <span>
-                <kbd>Chuột</kbd> Xoay góc nhìn
-              </span>
-              <span>
-                <kbd>Cuộn chuột</kbd> Zoom
-              </span>
-              <span>
-                <kbd>Chuột trái</kbd> Tương tác
-              </span>
-              <span>
-                <kbd>V</kbd> Đổi góc nhìn
-              </span>
-              <span>
-                <kbd>ESC</kbd> Tạm dừng
-              </span>
-            </div>
-            {showTouchHint && (
-              <div className="controls-legend-pill touch-only-legend">
-                <span>Vuốt 1 ngón: Xoay 360°</span>
-                <span>·</span>
-                <span>2 ngón: Zoom</span>
-              </div>
-            )}
-
+          <div className="free-explore-bottom-bar minimal-dock-only">
             <div className="quick-interact-dock" role="group" aria-label="Tương tác nhanh trong phòng">
               <button
                 type="button"

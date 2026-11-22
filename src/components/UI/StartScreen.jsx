@@ -3,38 +3,38 @@ import { Play, Compass } from 'lucide-react';
 
 export default function StartScreen({
   mode,
-  onStartExperience,
-  onSkipToFreeExplore,
+  onEnterDirectly,
+  onStartGuided,
 }) {
   if (mode !== 'START') return null;
 
   return (
     <div className="start-screen-overlay">
       <div className="start-card">
-        <h1 className="start-title">MERRY CHRISTMAS  MÓN QUÀ NHỎ GỬI ĐẾN EM/ANH</h1>
+        <h1 className="start-title">NGÔI NHÀ GIÁNG SINH</h1>
 
         <p className="start-subtitle">
-          Lại một mùa giáng sinh lại tới, đây là mùa thứ n tôi và em/anh ( chúng ta ở bên nhau ). .....................
+          Nhấn để mở cửa bước vào không gian 3D và tự do khám phá.
         </p>
 
         <div className="start-actions">
           <button
             type="button"
             className="btn-primary-gold"
-            onClick={onStartExperience}
+            onClick={onEnterDirectly}
             autoFocus
           >
             <Play size={18} aria-hidden="true" />
-            <span>TRẢI NGHIỆM THEO HƯỚNG DẪN</span>
+            <span>CLICK ĐỂ KHÁM PHÁ</span>
           </button>
 
           <button
             type="button"
-            className="btn-secondary-ghost"
-            onClick={onSkipToFreeExplore}
+            className="btn-secondary-ghost compact"
+            onClick={onStartGuided}
           >
-            <Compass size={17} aria-hidden="true" />
-            <span>TỰ KHÁM PHÁ</span>
+            <Compass size={16} aria-hidden="true" />
+            <span>Giới thiệu nhanh 4 khu vực</span>
           </button>
         </div>
       </div>
