@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { getGiftWrapTexture } from '../../assets/textures/proceduralTextures';
 
+const dummy = new THREE.Object3D();
+
 export default function ChristmasTree({
   treeLightsOn,
   giftsOpened,
@@ -13,14 +15,11 @@ export default function ChristmasTree({
   isMobileDevice = false,
 }) {
   const starRef = useRef();
-  const lightsGroupRef = useRef();
-  const giftsRingRef = useRef();
+  const lightsMeshRef = useRef();
+  const ornamentsMeshRef = useRef();
+  const beadsMeshRef = useRef();
   const giftLidRefs = useRef([]);
   const giftSurpriseRefs = useRef([]);
-  const ringAngleRef = useRef(0);
-  const isDraggingRingRef = useRef(false);
-  const dragStartXRef = useRef(0);
-  const didDragRingRef = useRef(false);
 
   const stripeTex = useMemo(() => getGiftWrapTexture('stripes'), []);
   const dotsTex = useMemo(() => getGiftWrapTexture('dots'), []);
@@ -29,45 +28,43 @@ export default function ChristmasTree({
   const isHoveredTree = hoveredObject?.id === 'christmas-tree';
   const isHoveredGifts = hoveredObject?.id === 'gift-boxes';
 
-  // Generate spiral LED fairy lights, golden beaded garlands, star ornaments & baubles (noel.jpe + merry.jpe)
+  // Generate positions for InstancedMeshes (3 draw calls total instead of ~300!)
   const { fairyLights, ornaments, starOrnaments, beadGarlands } = useMemo(() => {
     const lights = [];
     const baubles = [];
     const stars = [];
     const beads = [];
 
-    // Warm Golden LED Fairy Lights (lighter draw calls on mobile/iPad)
-    const lightCount = isMobileDevice ? 58 : 110;
+    const lightCount = isMobileDevice ? 64 : 100;
     for (let i = 0; i < lightCount; i++) {
       const t = i / (lightCount - 1);
       const y = 0.42 + t * 2.18;
       const maxR = (1 - t * 0.84) * 0.82;
-      const angle = t * Math.PI * 20;
+      const angle = t * Math.PI * 18;
       lights.push({
-        pos: [Math.cos(angle) * maxR, y, Math.sin(angle) * maxR],
-        phase: i * 0.45,
+        x: Math.cos(angle) * maxR,
+        y,
+        z: Math.sin(angle) * maxR,
       });
     }
 
-    // Metallic & Matte Ornaments
     const palette = ['#B22222', '#E9C879', '#F9F6F0', '#D4A857', '#9E2222', '#EFE6D5'];
-    const baubleCount = isMobileDevice ? 36 : 54;
+    const baubleCount = isMobileDevice ? 36 : 50;
     for (let i = 0; i < baubleCount; i++) {
       const t = (i + 0.4) / baubleCount;
       const y = 0.48 + t * 1.98;
       const r = (1 - t * 0.82) * 0.77;
       const angle = i * 2.39996;
       baubles.push({
-        pos: [Math.cos(angle) * r, y, Math.sin(angle) * r],
+        x: Math.cos(angle) * r,
+        y,
+        z: Math.sin(angle) * r,
         color: palette[i % palette.length],
         size: 0.044 + (i % 3) * 0.011,
-        metalness: i % 2 === 0 ? 0.72 : 0.28,
-        roughness: i % 2 === 0 ? 0.16 : 0.38,
       });
     }
 
-    // Golden 3D Star Ornaments
-    const starCount = isMobileDevice ? 6 : 10;
+    const starCount = isMobileDevice ? 6 : 8;
     for (let i = 0; i < starCount; i++) {
       const t = (i + 0.6) / (starCount + 1);
       const y = 0.65 + t * 1.65;
@@ -79,10 +76,9 @@ export default function ChristmasTree({
       });
     }
 
-    // Golden Beaded Garland Drapes (lighter bead density on mobile)
     [0.72, 1.16, 1.6, 2.0].forEach((ringY, rIdx) => {
       const baseR = 0.74 - rIdx * 0.145;
-      const beadCount = isMobileDevice ? 22 - rIdx * 3 : 46 - rIdx * 6;
+      const beadCount = isMobileDevice ? 22 - rIdx * 3 : 36 - rIdx * 5;
       for (let b = 0; b < beadCount; b++) {
         const ang = (b / beadCount) * Math.PI * 2;
         const swoop = Math.sin(ang * 5) * 0.075;
@@ -102,93 +98,102 @@ export default function ChristmasTree({
     };
   }, [isMobileDevice]);
 
-  // Bespoke Patterned Gift Boxes arranged in a circle around the Christmas Tree axis
-  const giftConfigs = useMemo(() => {
-    const items = [
+  // Populate static InstancedMesh matrices once
+  useEffect(() => {
+    if (lightsMeshRef.current) {
+      fairyLights.forEach((l, i) => {
+        dummy.position.set(l.x, l.y, l.z);
+        dummy.rotation.set(0, 0, 0);
+        dummy.scale.setScalar(1);
+        dummy.updateMatrix();
+        lightsMeshRef.current.setMatrixAt(i, dummy.matrix);
+      });
+      lightsMeshRef.current.instanceMatrix.needsUpdate = true;
+    }
+
+    if (ornamentsMeshRef.current) {
+      const col = new THREE.Color();
+      ornaments.forEach((b, i) => {
+        dummy.position.set(b.x, b.y, b.z);
+        dummy.rotation.set(0, 0, 0);
+        dummy.scale.setScalar(b.size);
+        dummy.updateMatrix();
+        ornamentsMeshRef.current.setMatrixAt(i, dummy.matrix);
+        col.set(b.color);
+        ornamentsMeshRef.current.setColorAt(i, col);
+      });
+      ornamentsMeshRef.current.instanceMatrix.needsUpdate = true;
+      if (ornamentsMeshRef.current.instanceColor) {
+        ornamentsMeshRef.current.instanceColor.needsUpdate = true;
+      }
+    }
+
+    if (beadsMeshRef.current) {
+      beadGarlands.forEach(([x, y, z], i) => {
+        dummy.position.set(x, y, z);
+        dummy.rotation.set(0, 0, 0);
+        dummy.scale.setScalar(1);
+        dummy.updateMatrix();
+        beadsMeshRef.current.setMatrixAt(i, dummy.matrix);
+      });
+      beadsMeshRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [fairyLights, ornaments, beadGarlands]);
+
+  // Gift boxes arranged around tree base
+  const giftConfigs = useMemo(
+    () => [
       {
+        pos: [-0.46, 0.16, 0.36],
         size: [0.32, 0.28, 0.3],
         boxColor: '#FFFFFF',
         map: stripeTex,
         ribbonColor: '#B22222',
+        rotY: 0.18,
       },
       {
+        pos: [-0.12, 0.13, 0.54],
         size: [0.27, 0.22, 0.26],
         boxColor: '#FFFFFF',
         map: dotsTex,
         ribbonColor: '#B22222',
+        rotY: -0.12,
       },
       {
+        pos: [0.24, 0.14, 0.48],
         size: [0.28, 0.24, 0.26],
         boxColor: '#A62424',
         map: null,
         ribbonColor: '#E9C879',
+        rotY: 0.25,
       },
       {
+        pos: [0.52, 0.15, 0.26],
         size: [0.29, 0.26, 0.28],
         boxColor: '#FFFFFF',
         map: kraftTex,
         ribbonColor: '#F5EFE6',
+        rotY: -0.28,
       },
       {
+        pos: [-0.56, 0.12, -0.04],
         size: [0.25, 0.2, 0.24],
         boxColor: '#FFFFFF',
         map: kraftTex,
         ribbonColor: '#A62424',
+        rotY: 0.4,
       },
       {
+        pos: [0.46, 0.12, -0.14],
         size: [0.26, 0.22, 0.25],
         boxColor: '#FFFFFF',
         map: stripeTex,
         ribbonColor: '#E9C879',
+        rotY: -0.35,
       },
-    ];
-    const radius = 0.85;
-    return items.map((item, idx) => {
-      const angle = (idx / items.length) * Math.PI * 2;
-      return {
-        ...item,
-        pos: [
-          Math.sin(angle) * radius,
-          item.size[1] * 0.5 + 0.02,
-          Math.cos(angle) * radius,
-        ],
-        rotY: angle,
-      };
-    });
-  }, [stripeTex, dotsTex, kraftTex]);
-
-  // Allow user from any position in the room to rotate the gift box circle around the tree axis when giftsOpened
-  useEffect(() => {
-    if (!giftsOpened) return;
-
-    const handleWheel = (e) => {
-      ringAngleRef.current += e.deltaY * 0.0025;
-    };
-
-    const handlePointerMove = (e) => {
-      if (!isDraggingRingRef.current) return;
-      const dx = e.clientX - dragStartXRef.current;
-      if (Math.abs(dx) > 3) {
-        didDragRingRef.current = true;
-      }
-      dragStartXRef.current = e.clientX;
-      ringAngleRef.current += dx * 0.012;
-    };
-
-    const handlePointerUp = () => {
-      isDraggingRingRef.current = false;
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      isDraggingRingRef.current = false;
-    };
-  }, [giftsOpened]);
+    ],
+    [stripeTex, dotsTex, kraftTex]
+  );
 
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime;
@@ -197,24 +202,16 @@ export default function ChristmasTree({
       starRef.current.rotation.y = Math.sin(t * 0.8) * 0.22;
     }
 
-    if (lightsGroupRef.current && treeLightsOn) {
-      lightsGroupRef.current.children.forEach((mesh, idx) => {
-        const s = 0.8 + Math.sin(t * 3.8 + idx * 0.65) * 0.3;
-        mesh.scale.setScalar(s);
-      });
-    }
-
-    if (giftsRingRef.current) {
-      if (giftsOpened && !isDraggingRingRef.current) {
-        ringAngleRef.current += delta * 0.55;
+    // Subtle global shimmer on fairy lights (zero per-instance CPU loop!)
+    if (lightsMeshRef.current && treeLightsOn) {
+      const mat = lightsMeshRef.current.material;
+      if (mat) {
+        const pulse = 0.85 + Math.sin(t * 3.2) * 0.15;
+        mat.color.setRGB(1.0 * pulse, 0.9 * pulse, 0.58 * pulse);
       }
-      giftsRingRef.current.rotation.y = THREE.MathUtils.lerp(
-        giftsRingRef.current.rotation.y,
-        ringAngleRef.current,
-        Math.min(1, delta * 8)
-      );
     }
 
+    // Smooth Gift Box Unwrapping Animation
     giftConfigs.forEach((cfg, idx) => {
       const lid = giftLidRefs.current[idx];
       const surprise = giftSurpriseRefs.current[idx];
@@ -257,7 +254,7 @@ export default function ChristmasTree({
             Math.min(1, delta * 5)
           )
         );
-        surprise.rotation.y += delta * 1.5;
+        if (giftsOpened) surprise.rotation.y += delta * 1.5;
       }
     });
   });
@@ -285,20 +282,8 @@ export default function ChristmasTree({
     if (mode === 'FREE_EXPLORE') onInteract('christmas-tree');
   };
 
-  const handleGiftPointerDown = (e) => {
-    if (mode !== 'FREE_EXPLORE' || !giftsOpened) return;
-    e.stopPropagation();
-    isDraggingRingRef.current = true;
-    didDragRingRef.current = false;
-    dragStartXRef.current = e.clientX;
-  };
-
   const handleGiftClick = (e) => {
     e.stopPropagation();
-    if (didDragRingRef.current) {
-      didDragRingRef.current = false;
-      return;
-    }
     if (mode === 'FREE_EXPLORE') onInteract('gift-boxes');
   };
 
@@ -308,44 +293,42 @@ export default function ChristmasTree({
   return (
     <group position={[0.55, 0, -2.35]}>
       {/* Plush Round Faux-Fur White Tree Skirt */}
-      <mesh position={[0, 0.02, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[0.95, 0.99, 0.04, 36]} />
+      <mesh position={[0, 0.02, 0]} receiveShadow>
+        <cylinderGeometry args={[0.95, 0.99, 0.04, 24]} />
         <meshStandardMaterial color="#F6F1E9" roughness={0.92} />
       </mesh>
 
       {/* Pine Tree Trunk */}
       <mesh
         position={[0, 0.25, 0]}
-        castShadow
         userData={treeInteractData}
         onClick={handleTreeClick}
       >
-        <cylinderGeometry args={[0.09, 0.13, 0.5, 12]} />
+        <cylinderGeometry args={[0.09, 0.13, 0.5, 10]} />
         <meshStandardMaterial color="#4D3624" roughness={0.9} />
       </mesh>
 
-      {/* 9 Lush Layered Evergreen Pine Foliage Tiers */}
+      {/* 8 Layered Evergreen Pine Foliage Tiers */}
       {[
-        { y: 0.54, r: 0.86, h: 0.58 },
-        { y: 0.82, r: 0.78, h: 0.54 },
-        { y: 1.09, r: 0.7, h: 0.5 },
-        { y: 1.34, r: 0.62, h: 0.48 },
-        { y: 1.58, r: 0.53, h: 0.45 },
-        { y: 1.81, r: 0.44, h: 0.42 },
-        { y: 2.02, r: 0.35, h: 0.38 },
-        { y: 2.22, r: 0.26, h: 0.35 },
-        { y: 2.41, r: 0.17, h: 0.32 },
+        { y: 0.56, r: 0.86, h: 0.6 },
+        { y: 0.86, r: 0.77, h: 0.55 },
+        { y: 1.15, r: 0.68, h: 0.52 },
+        { y: 1.42, r: 0.59, h: 0.48 },
+        { y: 1.68, r: 0.49, h: 0.45 },
+        { y: 1.93, r: 0.39, h: 0.42 },
+        { y: 2.16, r: 0.29, h: 0.38 },
+        { y: 2.38, r: 0.19, h: 0.35 },
       ].map((tier, idx) => (
         <mesh
           key={idx}
           position={[0, tier.y, 0]}
           rotation={[0, idx * 0.38, 0]}
-          castShadow
+          castShadow={idx % 2 === 0}
           receiveShadow
           userData={treeInteractData}
           onClick={handleTreeClick}
         >
-          <coneGeometry args={[tier.r, tier.h, 14]} />
+          <coneGeometry args={[tier.r, tier.h, 12]} />
           <meshStandardMaterial
             color={pineColor}
             roughness={0.82}
@@ -366,7 +349,7 @@ export default function ChristmasTree({
         userData={treeInteractData}
         onClick={handleTreeClick}
       >
-        <mesh castShadow>
+        <mesh>
           <octahedronGeometry args={[0.15, 0]} />
           <meshStandardMaterial
             color="#FFE699"
@@ -384,35 +367,64 @@ export default function ChristmasTree({
             emissiveIntensity={treeLightsOn ? 2.2 : 0.1}
           />
         </mesh>
-        {treeLightsOn && (
-          <pointLight
-            color="#FFD275"
-            intensity={1.35}
-            distance={4.8}
-            decay={2}
-          />
-        )}
       </group>
 
-      {/* Golden Beaded Garland Drapes (inspired by noel.jpe) */}
-      {beadGarlands.map((pos, idx) => (
-        <mesh key={idx} position={pos}>
-          <sphereGeometry args={[0.013, 8, 8]} />
-          <meshStandardMaterial
-            color="#E9C879"
-            metalness={0.88}
-            roughness={0.16}
-          />
-        </mesh>
-      ))}
+      {/* Single Warm Tree Glow PointLight (consolidated for mobile FPS) */}
+      {treeLightsOn && (
+        <pointLight
+          position={[0, 1.55, 0.42]}
+          color="#FFC966"
+          intensity={1.65}
+          distance={5.2}
+          decay={2}
+        />
+      )}
 
-      {/* 3D Golden Star Ornaments on Tree (inspired by noel.jpe) */}
+      {/* InstancedMesh: Golden Beaded Garlands (1 draw call!) */}
+      <instancedMesh
+        ref={beadsMeshRef}
+        args={[null, null, beadGarlands.length]}
+      >
+        <sphereGeometry args={[0.014, 6, 6]} />
+        <meshStandardMaterial
+          color="#E9C879"
+          metalness={0.85}
+          roughness={0.2}
+        />
+      </instancedMesh>
+
+      {/* InstancedMesh: Twinkling LED Fairy Lights (1 draw call!) */}
+      <instancedMesh
+        ref={lightsMeshRef}
+        args={[null, null, fairyLights.length]}
+        userData={treeInteractData}
+        onClick={handleTreeClick}
+      >
+        <sphereGeometry args={[0.018, 6, 6]} />
+        {treeLightsOn ? (
+          <meshBasicMaterial color="#FFE694" />
+        ) : (
+          <meshStandardMaterial color="#8A7E6A" roughness={0.5} />
+        )}
+      </instancedMesh>
+
+      {/* InstancedMesh: Ornaments / Baubles (1 draw call!) */}
+      <instancedMesh
+        ref={ornamentsMeshRef}
+        args={[null, null, ornaments.length]}
+        userData={treeInteractData}
+        onClick={handleTreeClick}
+      >
+        <sphereGeometry args={[1, 10, 10]} />
+        <meshStandardMaterial metalness={0.55} roughness={0.26} />
+      </instancedMesh>
+
+      {/* 3D Golden Star Ornaments */}
       {starOrnaments.map((st, idx) => (
         <mesh
           key={idx}
           position={st.pos}
           rotation={[0, st.rotY, Math.PI / 4]}
-          castShadow
         >
           <octahedronGeometry args={[0.055, 0]} />
           <meshStandardMaterial
@@ -423,75 +435,17 @@ export default function ChristmasTree({
         </mesh>
       ))}
 
-      {/* 110 Warm Twinkling LED Fairy Lights */}
-      <group ref={lightsGroupRef}>
-        {fairyLights.map((light, idx) => (
-          <mesh
-            key={idx}
-            position={light.pos}
-            userData={treeInteractData}
-            onClick={handleTreeClick}
-          >
-            <sphereGeometry args={[0.017, 8, 8]} />
-            {treeLightsOn ? (
-              <meshBasicMaterial color="#FFE694" />
-            ) : (
-              <meshStandardMaterial color="#8A7E6A" roughness={0.5} />
-            )}
-          </mesh>
-        ))}
-      </group>
-
-      {treeLightsOn && (
-        <>
-          <pointLight
-            position={[0, 1.38, 0.4]}
-            color="#FFC252"
-            intensity={1.45}
-            distance={5.2}
-            decay={1.8}
-          />
-          <pointLight
-            position={[0, 0.48, 0.55]}
-            color="#FFB042"
-            intensity={1.35}
-            distance={4.8}
-            decay={1.65}
-          />
-        </>
-      )}
-
-      {/* Christmas Ornaments / Baubles */}
-      {ornaments.map((b, idx) => (
-        <mesh
-          key={idx}
-          position={b.pos}
-          castShadow
-          userData={treeInteractData}
-          onClick={handleTreeClick}
-        >
-          <sphereGeometry args={[b.size, 14, 14]} />
-          <meshStandardMaterial
-            color={b.color}
-            metalness={b.metalness}
-            roughness={b.roughness}
-          />
-        </mesh>
-      ))}
-
       {/* ================= INTERACTIVE PATTERNED GIFT BOXES UNDER TREE ================= */}
-      <group ref={giftsRingRef}>
-        {giftConfigs.map((cfg, idx) => {
-          const [w, h, d] = cfg.size;
-          return (
-            <group
-              key={idx}
-              position={cfg.pos}
-              rotation={[0, cfg.rotY, 0]}
-              userData={giftInteractData}
-              onPointerDown={handleGiftPointerDown}
-              onClick={handleGiftClick}
-            >
+      {giftConfigs.map((cfg, idx) => {
+        const [w, h, d] = cfg.size;
+        return (
+          <group
+            key={idx}
+            position={cfg.pos}
+            rotation={[0, cfg.rotY, 0]}
+            userData={giftInteractData}
+            onClick={handleGiftClick}
+          >
             <mesh castShadow receiveShadow>
               <boxGeometry args={[w, h, d]} />
               <meshStandardMaterial
@@ -524,7 +478,7 @@ export default function ChristmasTree({
               ref={(el) => (giftLidRefs.current[idx] = el)}
               position={[0, h * 0.5 + 0.015, 0]}
             >
-              <mesh castShadow>
+              <mesh>
                 <boxGeometry args={[w + 0.02, 0.036, d + 0.02]} />
                 <meshStandardMaterial
                   color={cfg.boxColor}
@@ -549,7 +503,7 @@ export default function ChristmasTree({
                 />
               </mesh>
               <mesh position={[-0.028, 0.036, 0]} rotation={[0, 0, 0.4]}>
-                <torusGeometry args={[0.028, 0.01, 8, 16]} />
+                <torusGeometry args={[0.028, 0.01, 6, 12]} />
                 <meshStandardMaterial
                   color={cfg.ribbonColor}
                   metalness={0.45}
@@ -557,7 +511,7 @@ export default function ChristmasTree({
                 />
               </mesh>
               <mesh position={[0.028, 0.036, 0]} rotation={[0, 0, -0.4]}>
-                <torusGeometry args={[0.028, 0.01, 8, 16]} />
+                <torusGeometry args={[0.028, 0.01, 6, 12]} />
                 <meshStandardMaterial
                   color={cfg.ribbonColor}
                   metalness={0.45}
@@ -573,7 +527,7 @@ export default function ChristmasTree({
               scale={[0.01, 0.01, 0.01]}
             >
               <mesh>
-                <octahedronGeometry args={[0.068, 1]} />
+                <octahedronGeometry args={[0.068, 0]} />
                 <meshStandardMaterial
                   color="#FFE494"
                   emissive="#FFB732"
@@ -586,7 +540,6 @@ export default function ChristmasTree({
           </group>
         );
       })}
-      </group>
     </group>
   );
 }

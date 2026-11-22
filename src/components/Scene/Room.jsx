@@ -66,33 +66,27 @@ export default function Room({
         ]}
       />
 
-      {/* Softened Ceiling Fill Lights so Candlelight Dominates */}
-      <pointLight
-        position={[-1.5, 3.3, 0.2]}
-        intensity={0.12}
-        distance={8}
-        decay={2}
-        color="#FFD296"
-      />
-      <pointLight
-        position={[2.1, 3.3, 0.2]}
-        intensity={0.1}
-        distance={8}
-        decay={2}
-        color="#FFD296"
-      />
-      {/* Exterior Foyer Welcome Light */}
-      <pointLight
-        position={[0.4, 2.8, 4.6]}
-        intensity={0.6}
-        distance={5}
-        decay={2}
-        color="#FFE4B5"
-      />
+      {/* Exterior Foyer Welcome Light (only active while near entrance to save GPU lights) */}
+      {(mode === 'START' ||
+        mode === 'OUTSIDE_DOOR' ||
+        mode === 'OPENING_DOOR' ||
+        mode === 'ENTERING_ROOM') && (
+        <pointLight
+          position={[0.4, 2.8, 4.6]}
+          intensity={0.65}
+          distance={5}
+          decay={2}
+          color="#FFE4B5"
+        />
+      )}
 
       {/* Room Shell */}
       <Floor />
-      <Walls />
+      <Walls
+        mode={mode}
+        hoveredObject={interaction.hoveredObject}
+        onInteract={interaction.handleObjectInteraction}
+      />
       <Door
         doorOpen={interaction.doorOpen}
         mode={mode}

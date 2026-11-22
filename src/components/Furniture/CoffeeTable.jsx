@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { getOakWoodTexture } from '../../assets/textures/proceduralTextures';
 
 export default function CoffeeTable({
   candlesOn,
@@ -7,6 +8,7 @@ export default function CoffeeTable({
   mode,
   onInteract,
 }) {
+  const oakTex = useMemo(() => getOakWoodTexture(), []);
   const isHoveredCandles = hoveredObject?.id === 'candles';
 
   const candleInteractData = {
@@ -153,6 +155,69 @@ export default function CoffeeTable({
             </>
           )}
         </group>
+      </group>
+
+      {/* ================= 3. SCANDINAVIAN TABLETOP PHOTO FRAME WITH EASEL STAND ================= */}
+      <group position={[-0.16, 0.402, 0.25]} rotation={[0, -0.38, 0]}>
+        {/* Tilted Frame Body */}
+        <group position={[0, 0.112, 0]} rotation={[-0.18, 0, 0]}>
+          {/* Warm Oak Outer Frame */}
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[0.19, 0.23, 0.016]} />
+            <meshStandardMaterial
+              map={oakTex}
+              color="#C9A26E"
+              roughness={0.38}
+              metalness={0.18}
+            />
+          </mesh>
+
+          {/* Brushed Brass Inner Trim */}
+          <mesh position={[0, 0, 0.0085]}>
+            <planeGeometry args={[0.162, 0.202]} />
+            <meshStandardMaterial
+              color="#D4AF6A"
+              metalness={0.82}
+              roughness={0.22}
+            />
+          </mesh>
+
+          {/* Cream Passe-Partout Matting */}
+          <mesh position={[0, 0, 0.009]}>
+            <planeGeometry args={[0.154, 0.194]} />
+            <meshStandardMaterial color="#F9F6F0" roughness={0.62} />
+          </mesh>
+
+          {/* Gold Bevel Border around Photo Slot */}
+          <mesh position={[0, 0, 0.0095]}>
+            <planeGeometry args={[0.126, 0.166]} />
+            <meshStandardMaterial
+              color="#C8A25A"
+              metalness={0.65}
+              roughness={0.3}
+            />
+          </mesh>
+
+          {/* Placeholder Photo Canvas */}
+          <mesh position={[0, 0, 0.01]}>
+            <planeGeometry args={[0.12, 0.16]} />
+            <meshStandardMaterial color="#E6D8C5" roughness={0.55} />
+          </mesh>
+        </group>
+
+        {/* Rear Folding Easel Support Stand */}
+        <mesh
+          position={[0, 0.072, -0.042]}
+          rotation={[0.36, 0, 0]}
+          castShadow
+        >
+          <boxGeometry args={[0.036, 0.155, 0.01]} />
+          <meshStandardMaterial
+            map={oakTex}
+            color="#B58B5A"
+            roughness={0.48}
+          />
+        </mesh>
       </group>
     </group>
   );

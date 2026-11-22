@@ -14,6 +14,7 @@ export default function InteractionManager({
   isPaused,
   interaction,
   onAreaProximityChange,
+  playerRef,
 }) {
   const { camera } = useThree();
   const lastZoneRef = useRef(null);
@@ -21,13 +22,15 @@ export default function InteractionManager({
   useFrame(() => {
     if (mode !== 'FREE_EXPLORE' || isPaused) return;
 
-    // Detect which zone the user is currently standing near
+    // Detect which zone the user (or the chibi in third-person) is standing near
+    const px = playerRef?.current ? playerRef.current.pos.x : camera.position.x;
+    const pz = playerRef?.current ? playerRef.current.pos.z : camera.position.z;
     let closestZone = null;
     let minDist = Infinity;
 
     for (const zone of AREA_ZONES) {
-      const dx = camera.position.x - zone.x;
-      const dz = camera.position.z - zone.z;
+      const dx = px - zone.x;
+      const dz = pz - zone.z;
       const dist = Math.sqrt(dx * dx + dz * dz);
       if (dist <= zone.radius && dist < minDist) {
         minDist = dist;

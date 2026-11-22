@@ -81,16 +81,9 @@ export default function Sofa({
           />
         </mesh>
         <mesh position={[0.76, 1.7, 0]}>
-          <sphereGeometry args={[0.055, 14, 14]} />
+          <sphereGeometry args={[0.055, 12, 12]} />
           <meshBasicMaterial color="#FFE7A8" />
         </mesh>
-        <pointLight
-          position={[0.76, 1.62, 0]}
-          color="#FFC87A"
-          intensity={0.25}
-          distance={3.2}
-          decay={2}
-        />
       </group>
 
       {/* ================= 3-SEATER CREAM SCANDINAVIAN SOFA ================= */}

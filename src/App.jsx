@@ -11,8 +11,11 @@ import {
   Sparkles,
   Gift,
   DoorOpen,
+  User,
+  Eye,
 } from 'lucide-react';
 import Room from './components/Scene/Room';
+import Chibi from './components/Character/Chibi';
 import FirstPersonCamera from './components/Camera/FirstPersonCamera';
 import InteractionManager from './components/Interaction/InteractionManager';
 import StartScreen from './components/UI/StartScreen';
@@ -64,6 +67,31 @@ export default function App() {
   const [showTouchHint, setShowTouchHint] = useState(true);
   const [isMobileDevice] = useState(() => detectMobileOrTablet());
   const touchMoveRef = useRef({ x: 0, y: 0 });
+  // Góc nhìn: 'third' (thứ 3 với nhân vật Chibi) hoặc 'first' (thứ nhất)
+  const [viewMode, setViewMode] = useState('third');
+  const playerRef = useRef({
+    pos: new THREE.Vector3(0.4, 0, 2.4),
+    yaw: Math.PI,
+    moving: false,
+    speed: 0,
+    sitting: false,
+    hidden: false,
+  });
+
+  const toggleViewMode = useCallback(() => {
+    soundEngine.playInteractSound();
+    setViewMode((prev) => (prev === 'third' ? 'first' : 'third'));
+  }, []);
+
+  // Phím V để đổi góc nhìn nhanh
+  useEffect(() => {
+    if (exploration.mode !== 'FREE_EXPLORE') return;
+    const onKey = (e) => {
+      if (e.code === 'KeyV' && !exploration.isPaused) toggleViewMode();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [exploration.mode, exploration.isPaused, toggleViewMode]);
 
   useEffect(() => {
     if (exploration.mode === 'FREE_EXPLORE') {
@@ -194,6 +222,29 @@ export default function App() {
               />
             </div>
 
+            {/* Nút đổi góc nhìn thứ 1 / thứ 3 */}
+            {exploration.mode === 'FREE_EXPLORE' && (
+              <button
+                type="button"
+                className="hud-icon-btn view-toggle-btn"
+                onClick={toggleViewMode}
+                aria-label={
+                  viewMode === 'third'
+                    ? 'Chuyển sang góc nhìn thứ nhất'
+                    : 'Chuyển sang góc nhìn thứ ba'
+                }
+              >
+                {viewMode === 'third' ? (
+                  <Eye size={17} aria-hidden="true" />
+                ) : (
+                  <User size={17} aria-hidden="true" />
+                )}
+                <span className="hud-btn-label">
+                  {viewMode === 'third' ? 'Góc nhìn 1' : 'Góc nhìn 3'}
+                </span>
+              </button>
+            )}
+
             {/* Nút Tạm Dừng */}
             <button
               type="button"
@@ -291,6 +342,8 @@ export default function App() {
                 setIsPaused={exploration.setIsPaused}
                 interaction={interaction}
                 touchMoveRef={touchMoveRef}
+                viewMode={viewMode}
+                playerRef={playerRef}
               />
 
               <InteractionManager
@@ -298,6 +351,13 @@ export default function App() {
                 isPaused={exploration.isPaused}
                 interaction={interaction}
                 onAreaProximityChange={setCurrentProximityZone}
+                playerRef={playerRef}
+              />
+
+              <Chibi
+                mode={exploration.mode}
+                viewMode={viewMode}
+                playerRef={playerRef}
               />
 
               <Room
@@ -369,6 +429,9 @@ export default function App() {
               </span>
               <span>
                 <kbd>Chuột trái</kbd> Tương tác
+              </span>
+              <span>
+                <kbd>V</kbd> Đổi góc nhìn
               </span>
               <span>
                 <kbd>ESC</kbd> Tạm dừng

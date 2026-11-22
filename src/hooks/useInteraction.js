@@ -12,6 +12,7 @@ export function useInteraction({ markAreaExplored }) {
   const [inspectingWindow, setInspectingWindow] = useState(false);
   const [windowEveningMode, setWindowEveningMode] = useState(true);
   const [inspectingTable, setInspectingTable] = useState(null); // null | 'coffee' | 'dining'
+  const [tvVideoOpen, setTvVideoOpen] = useState(false);
 
   // Currently hovered / targeted interactive object from Raycaster
   const [hoveredObject, setHoveredObject] = useState(null);
@@ -157,6 +158,11 @@ export function useInteraction({ markAreaExplored }) {
           });
           break;
         }
+        case 'tv': {
+          soundEngine.playInteractSound();
+          setTvVideoOpen((prev) => !prev);
+          break;
+        }
         default:
           break;
       }
@@ -179,6 +185,8 @@ export function useInteraction({ markAreaExplored }) {
     setWindowEveningMode,
     inspectingTable,
     setInspectingTable,
+    tvVideoOpen,
+    setTvVideoOpen,
     hoveredObject,
     setHoveredObject,
     activeNotice,

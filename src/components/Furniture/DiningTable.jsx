@@ -69,13 +69,6 @@ export default function DiningTable({
             </mesh>
           </group>
         ))}
-        <pointLight
-          position={[0, -0.2, 0]}
-          color="#FFD28A"
-          intensity={0.22}
-          distance={3.6}
-          decay={2}
-        />
       </group>
 
       {/* Light Oak Rectangular Tabletop */}

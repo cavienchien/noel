@@ -11,6 +11,8 @@ export default function FirstPersonCamera({
   setIsPaused,
   interaction,
   touchMoveRef,
+  viewMode,
+  playerRef,
 }) {
   const { camera, size, gl } = useThree();
   const baseFovRef = useRef(55);
@@ -126,6 +128,8 @@ export default function FirstPersonCamera({
         setIsPaused={setIsPaused}
         interaction={interaction}
         touchMoveRef={touchMoveRef}
+        viewMode={viewMode}
+        playerRef={playerRef}
       />
     </>
   );

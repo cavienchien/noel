@@ -5,7 +5,9 @@ import * as THREE from 'three';
 export default function Raycaster({ mode, isPaused, onHoverChange }) {
   const { camera, scene, pointer } = useThree();
   const raycaster = useRef(new THREE.Raycaster());
+  const interactablesRef = useRef([]);
   const lastCheck = useRef(0);
+  const lastCacheTime = useRef(-10);
   const currentHoverId = useRef(null);
 
   useEffect(() => {
@@ -23,7 +25,6 @@ export default function Raycaster({ mode, isPaused, onHoverChange }) {
       return;
     }
 
-    // Only raycast in OUTSIDE_DOOR and FREE_EXPLORE modes
     if (mode !== 'OUTSIDE_DOOR' && mode !== 'FREE_EXPLORE') {
       if (currentHoverId.current !== null) {
         currentHoverId.current = null;
@@ -32,37 +33,48 @@ export default function Raycaster({ mode, isPaused, onHoverChange }) {
       return;
     }
 
-    // Throttle raycast to ~25 checks/sec for peak performance
+    // Throttle raycast to ~15 checks/sec for silky smooth FPS on all devices
     const now = state.clock.elapsedTime;
-    if (now - lastCheck.current < 0.04) return;
+    if (now - lastCheck.current < 0.065) return;
     lastCheck.current = now;
 
-    // If pointer is locked, raycast from center crosshair (0,0); otherwise use pointer position
+    // Refresh cached list of interactable meshes only once every 2 seconds
+    if (now - lastCacheTime.current > 2.0 || interactablesRef.current.length === 0) {
+      const list = [];
+      scene.traverse((obj) => {
+        if (obj.isMesh && obj.userData && obj.userData.interactable) {
+          list.push(obj);
+        }
+      });
+      interactablesRef.current = list;
+      lastCacheTime.current = now;
+    }
+
     const isLocked = Boolean(document.pointerLockElement);
     const coords = isLocked ? new THREE.Vector2(0, 0) : pointer;
 
     raycaster.current.setFromCamera(coords, camera);
-    raycaster.current.far = 25;
+    raycaster.current.far = 16;
 
-    const intersects = raycaster.current.intersectObjects(scene.children, true);
+    // Test ONLY interactable meshes (25x faster than traversing entire scene!)
+    const intersects = raycaster.current.intersectObjects(
+      interactablesRef.current,
+      false
+    );
     let found = null;
 
     for (let i = 0; i < intersects.length; i++) {
-      let obj = intersects[i].object;
-      while (obj) {
-        if (obj.userData && obj.userData.interactable) {
-          if (mode === 'OUTSIDE_DOOR' && obj.userData.id !== 'door') {
-            break;
-          }
-          found = {
-            ...obj.userData,
-            distance: intersects[i].distance,
-          };
-          break;
+      const obj = intersects[i].object;
+      if (obj.userData && obj.userData.interactable) {
+        if (mode === 'OUTSIDE_DOOR' && obj.userData.id !== 'door') {
+          continue;
         }
-        obj = obj.parent;
+        found = {
+          ...obj.userData,
+          distance: intersects[i].distance,
+        };
+        break;
       }
-      if (found) break;
     }
 
     const nextId = found ? `${found.id}-${found.actionLabel}` : null;

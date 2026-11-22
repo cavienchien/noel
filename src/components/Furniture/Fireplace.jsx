@@ -23,6 +23,7 @@ export default function Fireplace({
 
   const isHoveredFireplace = hoveredObject?.id === 'fireplace';
   const isHoveredCandles = hoveredObject?.id === 'candles';
+  const isHoveredTV = hoveredObject?.id === 'tv';
 
   // Lush Cascading Pine Garland along top & draping down both sides (inspired by ong.jpe)
   const { garlandClusters, garlandLights } = useMemo(() => {
@@ -99,6 +100,15 @@ export default function Fireplace({
     position: [-2.85, 1.65, -2.85],
   };
 
+  const tvInteractData = {
+    interactable: true,
+    id: 'tv',
+    name: 'Tivi',
+    actionLabel: 'Xem Video',
+    area: 'Lò sưởi',
+    position: [-2.15, 2.26, -2.98],
+  };
+
   const handleFireplaceClick = (e) => {
     e.stopPropagation();
     if (mode === 'FREE_EXPLORE') onInteract('fireplace');
@@ -107,6 +117,11 @@ export default function Fireplace({
   const handleCandleClick = (e) => {
     e.stopPropagation();
     if (mode === 'FREE_EXPLORE') onInteract('candles');
+  };
+
+  const handleTvClick = (e) => {
+    e.stopPropagation();
+    if (onInteract) onInteract('tv');
   };
 
   const mantelColor =
@@ -420,61 +435,83 @@ export default function Fireplace({
         </group>
       </group>
 
-      {candlesOn && (
-        <pointLight
-          position={[-0.35, 1.72, 0.35]}
-          color="#FFA938"
-          intensity={1.75}
-          distance={5.6}
-          decay={1.6}
-        />
-      )}
+      {/* Consolidated warm mantel glow handled by primary hearth light for high FPS */}
 
-      {/* ================= 4. FRAMED WINTER LANDSCAPE PAINTING & BRASS PICTURE LIGHT ================= */}
-      <group position={[0, 2.26, 0.02]}>
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[1.42, 1.08, 0.045]} />
+      {/* ================= 4. WALL-MOUNTED SMART TV ABOVE FIREPLACE MANTEL ================= */}
+      <group position={[0, 2.26, 0.04]}>
+        {/* Wall Mount Bracket Behind TV */}
+        <mesh position={[0, 0, -0.015]} castShadow>
+          <boxGeometry args={[0.72, 0.42, 0.024]} />
+          <meshStandardMaterial color="#181513" roughness={0.6} metalness={0.5} />
+        </mesh>
+
+        {/* Slim Brushed Charcoal / Espresso TV Chassis & Bezel */}
+        <mesh
+          castShadow
+          receiveShadow
+          userData={tvInteractData}
+          onClick={handleTvClick}
+        >
+          <boxGeometry args={[1.64, 0.96, 0.045]} />
           <meshStandardMaterial
-            map={oakTex}
-            color="#C9A26E"
-            roughness={0.38}
-            metalness={0.22}
+            color={isHoveredTV ? '#2D2722' : '#1E1A17'}
+            roughness={0.28}
+            metalness={0.65}
+            emissive={isHoveredTV ? '#E9C879' : '#000000'}
+            emissiveIntensity={isHoveredTV ? 0.14 : 0}
           />
-        </mesh>
-        <mesh position={[0, 0, 0.024]}>
-          <planeGeometry args={[1.34, 1.0]} />
-          <meshStandardMaterial color="#F9F6F0" roughness={0.58} />
-        </mesh>
-        <mesh position={[0, 0, 0.026]}>
-          <planeGeometry args={[1.28, 0.94]} />
-          <meshStandardMaterial map={paintingTex} roughness={0.5} />
         </mesh>
 
-        {/* Brass Picture Light Mounted Above Frame */}
-        <group position={[0, 0.67, 0.05]}>
-          <mesh position={[0, 0.02, -0.03]}>
-            <boxGeometry args={[0.16, 0.045, 0.04]} />
-            <meshStandardMaterial
-              color="#D4AF6A"
-              metalness={0.88}
-              roughness={0.18}
-            />
-          </mesh>
-          <mesh position={[0, 0, 0.06]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.018, 0.018, 0.64, 16]} />
-            <meshStandardMaterial
-              color="#D4AF6A"
-              metalness={0.88}
-              roughness={0.18}
-            />
-          </mesh>
-          <pointLight
-            position={[0, -0.08, 0.14]}
-            color="#FFE5A3"
-            intensity={0.85}
-            distance={2.4}
-            decay={2}
+        {/* Warm Champagne Brass Bottom Trim Bar */}
+        <mesh
+          position={[0, -0.468, 0.025]}
+          userData={tvInteractData}
+          onClick={handleTvClick}
+        >
+          <boxGeometry args={[1.6, 0.014, 0.006]} />
+          <meshStandardMaterial
+            color="#D4AF6A"
+            metalness={0.86}
+            roughness={0.2}
           />
+        </mesh>
+
+        {/* Tiny Power / Standby Status LED Indicator */}
+        <mesh position={[0, -0.468, 0.029]}>
+          <sphereGeometry args={[0.006, 8, 8]} />
+          <meshBasicMaterial color="#FFE299" />
+        </mesh>
+
+        {/* 16:9 TV Display Screen */}
+        <mesh
+          position={[0, 0.005, 0.025]}
+          userData={tvInteractData}
+          onClick={handleTvClick}
+        >
+          <planeGeometry args={[1.56, 0.88]} />
+          <meshStandardMaterial
+            color="#171412"
+            roughness={0.14}
+            metalness={0.25}
+            emissive="#2B2118"
+            emissiveIntensity={isHoveredTV ? 0.85 : 0.48}
+          />
+        </mesh>
+
+        {/* Center Play Button Emblem on TV Screen */}
+        <group
+          position={[0, 0.005, 0.028]}
+          userData={tvInteractData}
+          onClick={handleTvClick}
+        >
+          <mesh>
+            <ringGeometry args={[0.085, 0.098, 32]} />
+            <meshBasicMaterial color="#E9C879" />
+          </mesh>
+          <mesh position={[0.008, 0, 0.001]}>
+            <circleGeometry args={[0.045, 3]} />
+            <meshBasicMaterial color="#FFF3D6" />
+          </mesh>
         </group>
       </group>
 
@@ -571,19 +608,10 @@ export default function Fireplace({
           <meshStandardMaterial color="#F9F6F0" roughness={0.35} />
         </mesh>
         {candlesOn && (
-          <>
-            <mesh position={[0, 0.22, 0]}>
-              <coneGeometry args={[0.018, 0.048, 10]} />
-              <meshBasicMaterial color="#FFD15C" />
-            </mesh>
-            <pointLight
-              position={[0, 0.22, 0]}
-              color="#FFA630"
-              intensity={1.55}
-              distance={5.0}
-              decay={1.6}
-            />
-          </>
+          <mesh position={[0, 0.22, 0]}>
+            <coneGeometry args={[0.018, 0.048, 8]} />
+            <meshBasicMaterial color="#FFD15C" />
+          </mesh>
         )}
       </group>
 
